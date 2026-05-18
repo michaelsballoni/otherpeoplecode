@@ -1,0 +1,14 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path="lib/include.h" />
+    <File Path="lib/load.h" />
+    <File Path="lib/loadworker.h" />
+    <File Path="lib/utils.h" />
+    <File Path="otherpeoplecode.h" />
+  </Folder>
+  <Project Path="exampleapp/exampleapp.vcxproj" Id="a2e5eb13-e897-4420-8256-6ccc91ed0cdf" />
+</Solution>
