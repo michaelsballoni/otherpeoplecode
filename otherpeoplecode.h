@@ -2,7 +2,8 @@
 
 #include "lib/include.h"
 #include "lib/utils.h"
-#include "lib/load.h"
+#include "lib/urlparse.h"
+#include "lib/download.h"
 
 namespace otherpeoplecode
 {
@@ -24,13 +25,14 @@ namespace otherpeoplecode
 	inline HMODULE LoadLibraryWeb(const wchar_t* url)
 	{
 		// parse the URL first
+		UrlParse parse;
 		UrlParts url_parts;
-		const char* part_error = Utils::ParseUrl(Setup::GetObj().UrlBasePath + url, url_parts);
+		const char* part_error = parse.Parse(Setup::GetObj().UrlBasePath + url, url_parts);
 		if (part_error != nullptr) // not a valid URL?  treat it like a file!
 			return ::LoadLibrary((Setup::GetObj().FileBasePath + url).c_str());
 
 		// look in the cache first
-		std::wstring cache_path = Utils::GetCachePath(url_parts);
+		std::wstring cache_path = url_parts.GetCachePath(Setup::GetObj().CachePath);
 		if (Utils::FileExists(cache_path))
 		{
 			// FORNOW - Do a HEAD request and compare timestamp/EID/content-length
@@ -38,7 +40,7 @@ namespace otherpeoplecode
 		}
 
 		// if not download the file to the cache
-		Loader loader;
+		Download loader;
 		const char* load_error = loader.Load(url_parts, cache_path);
 		if (load_error != nullptr)
 			return NULL;

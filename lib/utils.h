@@ -1,3 +1,6 @@
+
+#pragma once
+
 #include "include.h"
 
 namespace otherpeoplecode
@@ -16,60 +19,25 @@ namespace otherpeoplecode
 		}
 	};
 
-	struct UrlParts
-	{
-		int port = 0;
-		std::wstring server;
-		std::wstring request;
-	};
-
 	class Utils
 	{
 	public:
-		static const char* ParseUrl(std::wstring url, UrlParts& parts)
+		static bool StartsWith(const std::wstring& str, const wchar_t* starter)
 		{
-			std::wstring lower_path;
-			std::transform(url.begin(), url.end(), lower_path.begin(), [](wchar_t c) { return std::towlower(c); });
+			if (str.empty() || !*starter)
+				return false;
 
-			bool is_http = lower_path.find(L"http://") == 0;
-			bool is_https = lower_path.find(L"https://") == 0;
-			if (is_http || is_https)
+			size_t starter_len = wcslen(starter);
+			if (starter_len > str.length())
+				return false;
+
+			for (size_t s = 0; s < starter_len; ++s)
 			{
-				// FORNOW - Modernize this mess
-				wchar_t* server_begin = (wchar_t* )wcsstr(lower_path.c_str(), L"//");
-				if (server_begin == nullptr)
-					return "server start";
-				server_begin += 2;
-
-				wchar_t* server_end = wcsstr(server_begin, L"/");
-				if (server_end == nullptr) {
-					parts.server = server_begin;
-					parts.request = L"";
-				}
-				else 
-				{
-					server_end[0] = L'\0';
-					parts.server = server_begin;
-					parts.request = server_end + 1;
-				}
-
-				parts.port = is_http ? 80 : 443;
-				wchar_t* port_str = (wchar_t*)wcsstr(parts.server.c_str(), L":");
-				if (port_str != nullptr)
-				{
-					port_str[0] = L'\0';
-					parts.port = _wtoi(port_str);
-					if (parts.port <= 0 || parts.port > USHRT_MAX)
-						return "port";
-				}
+				if (str[s] != starter[s])
+					return false;
 			}
-		}
 
-		static std::wstring GetCachePath(const UrlParts& parts)
-		{
-			std::wstring output = Setup::GetObj().CachePath;
-			output += parts.server + L"_" + parts.request + L"_" + std::to_wstring(parts.port);
-			return output;
+			return true;
 		}
 
 		static bool FileExists(const std::wstring& path)
@@ -84,10 +52,10 @@ namespace otherpeoplecode
 			{
 				if (iswalnum(c))
 					output += c;
-				else
+				else if (output.empty() || output.back() != '.')
 					output += '.';
 			}
-			
+
 			while (!output.empty() && output.back() == '.')
 				output.pop_back();
 
@@ -99,6 +67,12 @@ namespace otherpeoplecode
 
 		static void RaiseItemError(const char* msg, const wchar_t* item)
 		{
+			if (msg == nullptr || !*msg)
+				throw std::exception("Invalid error message");
+
+			if (item == nullptr || !*item)
+				throw std::exception(msg);
+
 			size_t converted_count = 0;
 			size_t item_size = wcslen(item) + 1;
 			char* item_narrow = new char[item_size];
@@ -106,12 +80,10 @@ namespace otherpeoplecode
 				delete[] item_narrow;
 				throw std::exception("RaiseItemError: wcstombs_s failed");
 			}
-			else
-			{
-				std::string item_str = item_narrow;
-				delete[] item_narrow;
-				throw std::runtime_error(msg + std::string(": ") + item_str);
-			}
+
+			std::string item_str = item_narrow;
+			delete[] item_narrow;
+			throw std::runtime_error(msg + std::string(": ") + item_str);
 		}
 	};
 }
