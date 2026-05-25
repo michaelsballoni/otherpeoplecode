@@ -41,8 +41,9 @@ namespace otherpeoplecode
 
 		// if not download the file to the cache
 		Download loader;
-		const char* load_error = loader.Load(url_parts, cache_path);
-		if (load_error != nullptr)
+		unsigned int status_code = 0;
+		const char* load_error = loader.Load(url_parts, cache_path, status_code);
+		if (load_error != nullptr || status_code != 200)
 			return NULL;
 		else
 			return ::LoadLibrary(cache_path.c_str());

@@ -21,10 +21,10 @@ namespace otherpeoplecode
 			::WinHttpCloseHandle(m_session);
 		}
 
-		const char* Load(const UrlParts& parts, const std::wstring& path)
+		const char* Load(const UrlParts& parts, const std::wstring& path, unsigned int& statusCode)
 		{
 			LoadWorker worker(m_session);
-			return worker.Load(parts, path);
+			return worker.Load(parts, path, statusCode);
 		}
 
 	private:
