@@ -81,13 +81,71 @@ namespace otherpeopletests
 
 		TEST_METHOD(TestUrlParse)
 		{
-			otherpeoplecode::UrlParse parse;
-
 			{
+				otherpeoplecode::UrlParse parse;
 				otherpeoplecode::UrlParts parts;
 				std::wstring url = L"";
 				const char* err_str = parse.Parse(url, parts);
-				Assert::AreEqual(std::string(err_str), std::string("not url"));
+				Assert::AreEqual(std::string("not url"), std::string(err_str));
+			}
+
+			{
+				otherpeoplecode::UrlParse parse;
+				otherpeoplecode::UrlParts parts;
+				std::wstring url = L"http://";
+				const char* err_str = parse.Parse(url, parts);
+				Assert::AreEqual(std::string("server"), std::string(err_str));
+			}
+
+			{
+				otherpeoplecode::UrlParse parse;
+				otherpeoplecode::UrlParts parts;
+				std::wstring url = L"http://foo:bar";
+				const char* err_str = parse.Parse(url, parts);
+				Assert::AreEqual(std::string("port"), std::string(err_str));
+			}
+
+			{
+				otherpeoplecode::UrlParse parse;
+				otherpeoplecode::UrlParts parts;
+				std::wstring url = L"http://foo";
+				const char* err_str = parse.Parse(url, parts);
+				Assert::AreEqual(std::string(""), std::string(err_str));
+				Assert::AreEqual(std::wstring(L"foo"), parts.server);
+				Assert::AreEqual(std::wstring(L""), parts.request);
+				Assert::AreEqual(80, parts.port);
+			}
+
+			{
+				otherpeoplecode::UrlParse parse;
+				otherpeoplecode::UrlParts parts;
+				std::wstring url = L"https://foo:914";
+				const char* err_str = parse.Parse(url, parts);
+				Assert::AreEqual(std::string(err_str), std::string(""));
+				Assert::AreEqual(std::wstring(L"foo"), parts.server);
+				Assert::AreEqual(std::wstring(L""), parts.request);
+				Assert::AreEqual(914, parts.port);
+			}
+
+			{
+				otherpeoplecode::UrlParse parse;
+				otherpeoplecode::UrlParts parts;
+				std::wstring url = L"http://foo:924/request";
+				const char* err_str = parse.Parse(url, parts);
+				Assert::AreEqual(std::string(err_str), std::string(""));
+				Assert::AreEqual(std::wstring(L"foo"), parts.server);
+				Assert::AreEqual(std::wstring(L"request"), parts.request);
+				Assert::AreEqual(924, parts.port);
+			}
+
+			{
+				otherpeoplecode::UrlParse parse;
+				otherpeoplecode::UrlParts parts;
+				std::wstring url = L"http://foo/request/more/some.dll";
+				const char* err_str = parse.Parse(url, parts);
+				Assert::AreEqual(std::string(err_str), std::string(""));
+				Assert::AreEqual(std::wstring(L"foo"), parts.server);
+				Assert::AreEqual(std::wstring(L"request/more/some.dll"), parts.request);
 			}
 		}
 	};
