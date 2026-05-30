@@ -1,33 +1,19 @@
-#pragma once
+#include "pch.h"
+#include "otherpeoplecode.h"
 
-#include "lib/include.h"
-#include "lib/utils.h"
-#include "lib/urlparse.h"
-#include "lib/download.h"
+using namespace otherpeoplecode;
+
+#include "utils.h"
+#include "urlparts.h"
+#include "download.h"
 
 namespace otherpeoplecode
 {
-	inline void SetCachePath(const wchar_t* path)
-	{
-		Setup::GetObj().CachePath = path;
-	}
-
-	inline void SetUrlBasePath(const wchar_t* path)
-	{
-		Setup::GetObj().UrlBasePath = path;
-	}
-
-	inline void SetFileBasePath(const wchar_t* path)
-	{
-		Setup::GetObj().FileBasePath = path;
-	}
-
-	inline HMODULE LoadLibraryWeb(const wchar_t* url)
+	HMODULE LoadLibraryWeb(const TCHAR* url)
 	{
 		// parse the URL first
-		UrlParse parse;
 		UrlParts url_parts;
-		const char* part_error = parse.Parse(Setup::GetObj().UrlBasePath + url, url_parts);
+		const char* part_error = UrlParts::Parse(Setup::GetObj().UrlBasePath + url, url_parts);
 		if (part_error != nullptr) // not a valid URL?  treat it like a file!
 			return ::LoadLibrary((Setup::GetObj().FileBasePath + url).c_str());
 
@@ -41,11 +27,26 @@ namespace otherpeoplecode
 
 		// if not download the file to the cache
 		Download loader;
-		unsigned int status_code = 0;
+		DWORD status_code = 0;
 		const char* load_error = loader.Load(url_parts, cache_path, status_code);
 		if (load_error != nullptr || status_code != 200)
 			return NULL;
 		else
 			return ::LoadLibrary(cache_path.c_str());
+	}
+
+	void SetCachePath(const wchar_t* path)
+	{
+		Setup::GetObj().CachePath = path;
+	}
+
+	void SetUrlBasePath(const wchar_t* path)
+	{
+		Setup::GetObj().UrlBasePath = path;
+	}
+
+	void SetFileBasePath(const wchar_t* path)
+	{
+		Setup::GetObj().FileBasePath = path;
 	}
 }

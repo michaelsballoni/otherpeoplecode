@@ -1,0 +1,204 @@
+#include "pch.h"
+#include "utils.h"
+
+namespace otherpeoplecode
+{
+	Setup& Setup::GetObj()
+	{
+		static Setup obj;
+		return obj;
+	}
+
+	bool StartsWith(const std::wstring& str, const wchar_t* starter)
+	{
+		if (str.empty() || !*starter)
+			return false;
+
+		size_t starter_len = wcslen(starter);
+		if (starter_len > str.length())
+			return false;
+
+		for (size_t s = 0; s < starter_len; ++s)
+		{
+			if (str[s] != starter[s])
+				return false;
+		}
+
+		return true;
+	}
+
+	std::wstring Trim(const std::wstring& str)
+	{
+		if (str.empty())
+			return std::wstring();
+
+		if (str.length() == 1)
+			return iswspace(str[0]) ? std::wstring() : str;
+
+		if (!iswspace(str.front()) && !iswspace(str.back()))
+			return str;
+
+		std::wstring retVal;
+		retVal.reserve(str.length());
+
+		// skip whitespace
+		size_t c = 0;
+		while (c < str.length() && iswspace(str[c]))
+			++c;
+
+		// copy the rest
+		while (c < str.length())
+			retVal.push_back(str[c++]);
+
+		// pop whitespace
+		while (!retVal.empty() && iswspace(retVal.back()))
+			retVal.pop_back();
+
+		return retVal;
+	}
+
+	bool FileExists(const std::wstring& path)
+	{
+		return std::filesystem::exists(path);
+	}
+
+	std::wstring SafePathStr(const std::wstring& un)
+	{
+		std::wstring output;
+		for (wchar_t c : un)
+		{
+			if (iswalnum(c))
+				output += c;
+			else if (output.empty() || output.back() != '.')
+				output += '.';
+		}
+
+		while (!output.empty() && output.back() == '.')
+			output.pop_back();
+
+		if (output.empty())
+			return L"empty";
+
+		return output;
+	}
+
+	void RaiseItemError(const char* msg, const wchar_t* item)
+	{
+		if (msg == nullptr || !*msg)
+			throw std::exception("Invalid error message");
+
+		if (item == nullptr || !*item)
+			throw std::exception(msg);
+
+		size_t converted_count = 0;
+		size_t item_size = wcslen(item) + 1;
+		char* item_narrow = new char[item_size];
+		if (wcstombs_s(&converted_count, item_narrow, item_size, item, _TRUNCATE) != 0) {
+			delete[] item_narrow;
+			throw std::exception("RaiseItemError: wcstombs_s failed");
+		}
+
+		std::string item_str = item_narrow;
+		delete[] item_narrow;
+		throw std::runtime_error(msg + std::string(": ") + item_str);
+	}
+
+	const char* LoadFileIntoMemory(const std::wstring& filePath, std::vector<uint8_t>& output)
+	{
+#pragma warning(push)
+#pragma warning(disable : 4996) // _CRT_SECURE_NO_WARNINGS
+		FILE* file = ::_wfopen(filePath.c_str(), L"rb");
+		if (!file)
+			return "fopen";
+#pragma warning(pop)
+		if (file == nullptr)
+			return "fopen";
+		if (::fseek(file, 0, SEEK_END) != 0)
+			return "fseek";
+		long file_len = ::ftell(file);
+		if (file_len < 0)
+			return "ftell";
+		if (::fseek(file, 0, SEEK_SET) != 0)
+			return "fseek2";
+
+		output.reserve(file_len);
+
+		char buffer[4096];
+		while (true)
+		{
+			size_t read_amount = ::fread(buffer, 1, sizeof(buffer), file);
+			if (read_amount == 0)
+				break;
+
+			size_t original_size = output.size();
+			output.resize(original_size + read_amount);
+			memcpy(output.data() + original_size, buffer, read_amount);
+		}
+		return "";
+	}
+
+	std::wstring AsciiBytesToWStr(const std::vector<uint8_t>& bytes)
+	{
+		std::wstring output;
+		for (auto b : bytes)
+			output += (wchar_t)(char)b;
+		return output;
+	}
+
+	std::string WstringToUtf8(const std::wstring& str) 
+	{
+		if (str.empty())
+			return std::string();
+
+		int size_needed = WideCharToMultiByte(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0, NULL, NULL);
+		std::string output(size_needed, 0);
+		WideCharToMultiByte(CP_UTF8, 0, str.data(), (int)str.size(), output.data(), size_needed, NULL, NULL);
+		return output;
+	}
+
+	std::vector<std::wstring> Split(const std::wstring& str, const std::wstring& seperator)
+	{
+		std::vector<std::wstring> retVal;
+		if (seperator.empty())
+		{
+			retVal.push_back(str);
+		}
+		else if (seperator.size() == 1)
+		{
+			std::wstring acc;
+			const wchar_t sep = seperator[0];
+			for (wchar_t c : str)
+			{
+				if (c == sep)
+				{
+					retVal.push_back(acc);
+					acc.clear();
+				}
+				else
+					acc.push_back(c);
+			}
+			if (!acc.empty())
+				retVal.push_back(acc);
+		}
+		else
+		{
+			wchar_t* last_sep = const_cast<wchar_t*>(str.c_str());
+			size_t sep_len = seperator.length();
+			while (last_sep != nullptr && last_sep[0] != '\0')
+			{
+				wchar_t* next_sep = wcsstr(last_sep, seperator.c_str());
+				if (next_sep == nullptr)
+				{
+					retVal.push_back(last_sep);
+					break;
+				}
+				else
+				{
+					retVal.emplace_back(last_sep, next_sep);
+					last_sep = next_sep + sep_len;
+				}
+			}
+		}
+		return retVal;
+	}
+}
