@@ -71,3 +71,9 @@ FileContentIndex
 /.vs/
 /exampleapp/x64/
 /otherpeopletests/x64/Debug/
+*.recipe
+*.tlog
+*.lastbuildstate
+*.txt
+*.idb
+*.exp

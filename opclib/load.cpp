@@ -14,12 +14,14 @@ namespace otherpeoplecode
 
 	Loader::~Loader()
 	{
-		::WinHttpCloseHandle(m_session);
+		if (m_session != nullptr)
+			::WinHttpCloseHandle(m_session);
+		m_session = nullptr;
 	}
 
-	const char* Loader::Load(const UrlParts& parts, const std::wstring& path, DWORD& statusCode)
+	HttpResponse Loader::Load(HttpRequest request)
 	{
 		LoadWorker worker(m_session);
-		return worker.Load(parts, path, statusCode);
+		return worker.Load(request);
 	}
 }

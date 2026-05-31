@@ -151,7 +151,6 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="download.h" />
     <ClInclude Include="inifile.h" />
     <ClInclude Include="load.h" />
     <ClInclude Include="loadworker.h" />
@@ -161,7 +160,6 @@
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="download.cpp" />
     <ClCompile Include="inifile.cpp" />
     <ClCompile Include="load.cpp" />
     <ClCompile Include="loadworker.cpp" />

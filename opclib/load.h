@@ -1,6 +1,6 @@
 #pragma once
 
-#include "urlparts.h"
+#include "loadworker.h"
 
 namespace otherpeoplecode
 {
@@ -9,7 +9,7 @@ namespace otherpeoplecode
 	public:
 		Loader();
 		~Loader();
-		const char* Load(const UrlParts& parts, const std::wstring& path, DWORD& statusCode);
+		HttpResponse Load(HttpRequest request);
 
 	private:
 		HINTERNET m_session;

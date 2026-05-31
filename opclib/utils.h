@@ -15,6 +15,7 @@ namespace otherpeoplecode
 	class Utils
 	{
 	public:
+		static std::wstring ToLower(const std::wstring& str);
 		static bool StartsWith(const std::wstring& str, const wchar_t* starter);
 		static std::wstring Trim(const std::wstring& str);
 		static bool FileExists(const std::wstring& path);

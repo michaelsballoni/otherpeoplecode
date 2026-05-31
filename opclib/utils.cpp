@@ -9,6 +9,15 @@ namespace otherpeoplecode
 		return obj;
 	}
 
+	std::wstring ToLower(const std::wstring& str)
+	{
+		std::wstring ret_val;
+		ret_val.reserve(str.size());
+		for (auto c : str)
+			ret_val += towlower(c);
+		return ret_val;
+	}
+
 	bool StartsWith(const std::wstring& str, const wchar_t* starter)
 	{
 		if (str.empty() || !*starter)
