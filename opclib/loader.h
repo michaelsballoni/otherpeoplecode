@@ -2,21 +2,23 @@
 
 #include "urlparts.h"
 
+#include <windows.h>
+#include <winhttp.h>
+
+#include <map>
+
 namespace otherpeoplecode
 {
 	class HttpResponse
 	{
 	public:
-		HttpResponse()
-		{}
-
-		HttpResponse(const std::wstring& outputFilePath) 
+		HttpResponse(const std::wstring& outputFilePath)
 			: OutputFilePath(outputFilePath)
 		{}
 
+		DWORD StatusCode = 0;
 		std::wstring ErrorMessage;
 		std::wstring OutputFilePath;
-		DWORD StatusCode = 0;
 		std::map<std::wstring, std::wstring> Headers;
 
 		HttpResponse& OnErr(const std::wstring& msg)
@@ -40,17 +42,21 @@ namespace otherpeoplecode
 		std::wstring OutputFilePath;
 	};
 
-	class LoadWorker
+	class Loader
 	{
 	public:
-		LoadWorker(HINTERNET session)
-			: m_session(session)
-		{}
-
-		~LoadWorker()
+		Loader()
 		{
-			::WinHttpCloseHandle(m_connection);
+			m_session = ::WinHttpOpen(L"otherpeoplecode", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
+			if (!m_session)
+				throw std::exception("Fatal Error: WinHttpOpen failed; no libraries can be loaded");
+		}
+
+		~Loader()
+		{
 			::WinHttpCloseHandle(m_request);
+			::WinHttpCloseHandle(m_connection);
+			::WinHttpCloseHandle(m_session);
 
 			if (m_file != nullptr)
 			{
@@ -60,9 +66,6 @@ namespace otherpeoplecode
 		}
 
 		HttpResponse Load(HttpRequest request);
-
-	private:
-		static std::map<std::wstring, std::wstring> GetResponseHeaders(HINTERNET request, const std::vector<std::wstring>& headerNames);
 
 	private:
 		HINTERNET m_session = nullptr;

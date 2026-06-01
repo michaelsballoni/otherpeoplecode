@@ -1,16 +1,19 @@
 #include "pch.h"
-#include "loadworker.h"
+#include "loader.h"
 #include "urlparts.h"
 
 namespace otherpeoplecode
 {
-	HttpResponse LoadWorker::Load(HttpRequest request)
+	// helper function to take load off Load
+	std::map<std::wstring, std::wstring> GetResponseHeaders(HINTERNET request, const std::vector<std::wstring>& headerNames);
+
+	HttpResponse Loader::Load(HttpRequest request)
 	{
 		HttpResponse response(request.OutputFilePath);
 
 #pragma warning(push)
 #pragma warning(disable : 4996) // _CRT_SECURE_NO_WARNINGS
-		m_file = ::_wfopen(request.OutputFilePath.c_str(), L"wb");
+		m_file = ::_wfopen(response.OutputFilePath.c_str(), L"wb");
 		if (!m_file)
 			return response.OnErr(L"fopen");
 #pragma warning(pop)
@@ -104,7 +107,7 @@ namespace otherpeoplecode
 		return response;
 	}
 
-	std::map<std::wstring, std::wstring> LoadWorker::GetResponseHeaders(HINTERNET request, const std::vector<std::wstring>& headerNames)
+	std::map<std::wstring, std::wstring> GetResponseHeaders(HINTERNET request, const std::vector<std::wstring>& headerNames)
 	{
 		std::map<std::wstring, std::wstring> output;
 		DWORD dwSize = 0;

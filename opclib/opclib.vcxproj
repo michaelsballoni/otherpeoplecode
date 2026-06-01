@@ -152,8 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="inifile.h" />
-    <ClInclude Include="load.h" />
-    <ClInclude Include="loadworker.h" />
+    <ClInclude Include="loader.h" />
     <ClInclude Include="otherpeoplecode.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="urlparts.h" />
@@ -161,8 +160,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="inifile.cpp" />
-    <ClCompile Include="load.cpp" />
-    <ClCompile Include="loadworker.cpp" />
+    <ClCompile Include="loader.cpp" />
     <ClCompile Include="otherpeoplecode.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

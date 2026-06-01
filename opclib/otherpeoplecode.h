@@ -1,10 +1,12 @@
 #pragma once
 
+#include <windows.h>
+
 namespace otherpeoplecode
 {
 	//
 	// The main function, pass in a HTTP(S) URL or a file path
-	// and you get standard LoadLibary behavior, and HMODULE returned
+	// and you get standard LoadLibary behavior, an HMODULE returned
 	// that you must call FreeLibary() to clean up.
 	// 
 	// Internally if the url is an HTTP(S) URL,

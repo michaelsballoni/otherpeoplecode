@@ -9,7 +9,7 @@ namespace otherpeoplecode
 		return obj;
 	}
 
-	std::wstring ToLower(const std::wstring& str)
+	std::wstring Utils::ToLower(const std::wstring& str)
 	{
 		std::wstring ret_val;
 		ret_val.reserve(str.size());
@@ -18,7 +18,7 @@ namespace otherpeoplecode
 		return ret_val;
 	}
 
-	bool StartsWith(const std::wstring& str, const wchar_t* starter)
+	bool Utils::StartsWith(const std::wstring& str, const wchar_t* starter)
 	{
 		if (str.empty() || !*starter)
 			return false;
@@ -36,7 +36,7 @@ namespace otherpeoplecode
 		return true;
 	}
 
-	std::wstring Trim(const std::wstring& str)
+	std::wstring Utils::Trim(const std::wstring& str)
 	{
 		if (str.empty())
 			return std::wstring();
@@ -66,12 +66,12 @@ namespace otherpeoplecode
 		return retVal;
 	}
 
-	bool FileExists(const std::wstring& path)
+	bool Utils::FileExists(const std::wstring& path)
 	{
 		return std::filesystem::exists(path);
 	}
 
-	std::wstring SafePathStr(const std::wstring& un)
+	std::wstring Utils::SafePathStr(const std::wstring& un)
 	{
 		std::wstring output;
 		for (wchar_t c : un)
@@ -91,7 +91,7 @@ namespace otherpeoplecode
 		return output;
 	}
 
-	void RaiseItemError(const char* msg, const wchar_t* item)
+	void Utils::RaiseItemError(const char* msg, const wchar_t* item)
 	{
 		if (msg == nullptr || !*msg)
 			throw std::exception("Invalid error message");
@@ -112,7 +112,7 @@ namespace otherpeoplecode
 		throw std::runtime_error(msg + std::string(": ") + item_str);
 	}
 
-	const char* LoadFileIntoMemory(const std::wstring& filePath, std::vector<uint8_t>& output)
+	const char* Utils::LoadFileIntoMemory(const std::wstring& filePath, std::vector<uint8_t>& output)
 	{
 #pragma warning(push)
 #pragma warning(disable : 4996) // _CRT_SECURE_NO_WARNINGS
@@ -146,7 +146,7 @@ namespace otherpeoplecode
 		return "";
 	}
 
-	std::wstring AsciiBytesToWStr(const std::vector<uint8_t>& bytes)
+	std::wstring Utils::AsciiBytesToWStr(const std::vector<uint8_t>& bytes)
 	{
 		std::wstring output;
 		for (auto b : bytes)
@@ -154,7 +154,7 @@ namespace otherpeoplecode
 		return output;
 	}
 
-	std::string WstringToUtf8(const std::wstring& str) 
+	std::string Utils::WstringToUtf8(const std::wstring& str)
 	{
 		if (str.empty())
 			return std::string();
@@ -165,7 +165,7 @@ namespace otherpeoplecode
 		return output;
 	}
 
-	std::vector<std::wstring> Split(const std::wstring& str, const std::wstring& seperator)
+	std::vector<std::wstring> Utils::Split(const std::wstring & str, const std::wstring & seperator)
 	{
 		std::vector<std::wstring> retVal;
 		if (seperator.empty())
@@ -192,7 +192,7 @@ namespace otherpeoplecode
 		else
 		{
 			wchar_t* last_sep = const_cast<wchar_t*>(str.c_str());
-			size_t sep_len = seperator.length();
+			const size_t sep_len = seperator.length();
 			while (last_sep != nullptr && last_sep[0] != '\0')
 			{
 				wchar_t* next_sep = wcsstr(last_sep, seperator.c_str());
@@ -201,13 +201,33 @@ namespace otherpeoplecode
 					retVal.push_back(last_sep);
 					break;
 				}
-				else
-				{
-					retVal.emplace_back(last_sep, next_sep);
-					last_sep = next_sep + sep_len;
-				}
+
+				retVal.emplace_back(last_sep, next_sep);
+				last_sep = next_sep + sep_len;
 			}
 		}
 		return retVal;
+	}
+
+	std::wstring Utils::TcharToWString(const wchar_t* str)
+	{
+		if (!str || !*str)
+			return L"";
+		else
+			return std::wstring(str);
+	}
+
+	std::wstring Utils::TcharToWString(const char* str) 
+	{
+		if (!str || !*str)
+			return L"";
+
+		int size_needed = MultiByteToWideChar(CP_ACP, 0, str, -1, nullptr, 0);
+		if (size_needed <= 0)
+			return L"";
+
+		std::wstring result(size_needed - 1, L'\0'); // -1 to exclude the null terminator
+		MultiByteToWideChar(CP_ACP, 0, str, -1, result.data(), size_needed);
+		return result;
 	}
 }

@@ -21,10 +21,7 @@
     <ClInclude Include="inifile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="load.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="loadworker.h">
+    <ClInclude Include="loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="otherpeoplecode.h">
@@ -50,10 +47,7 @@
     <ClCompile Include="utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="load.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="loadworker.cpp">
+    <ClCompile Include="loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="urlparts.cpp">

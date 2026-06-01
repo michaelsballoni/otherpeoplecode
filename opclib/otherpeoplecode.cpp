@@ -1,16 +1,15 @@
 #include "pch.h"
 #include "otherpeoplecode.h"
-
-using namespace otherpeoplecode;
-
 #include "utils.h"
 #include "urlparts.h"
-#include "load.h"
+#include "loader.h"
 
 namespace otherpeoplecode
 {
-	HMODULE LoadLibraryWeb(const TCHAR* url)
+	HMODULE LoadLibraryWeb(const TCHAR* turl)
 	{
+		std::wstring url = Utils::TcharToWString(turl);
+
 		Loader loader;
 
 		// parse the URL first
@@ -23,12 +22,21 @@ namespace otherpeoplecode
 		std::wstring cache_path = url_parts.GetCachePath(Setup::GetObj().CachePath);
 		if (Utils::FileExists(cache_path))
 		{
-			// FORNOW - Do a HEAD request and compare timestamp/EID/content-length
+			// do a HEAD request and compare timestamp/EID/content-length
+			HttpRequest head_request(url_parts, L"HEAD", cache_path);
+			DWORD head_status_code = 0;
+			HttpResponse head_response = loader.Load(head_request);
+			if (head_response.ErrorMessage != L"" || head_status_code != 200)
+			{
+				::SetLastError(ERROR_INTERNET_CANNOT_CONNECT);
+				return NULL;
+			}
+			// FORNOW - Look for the INI file and pull out its settings
+
 			return ::LoadLibrary(cache_path.c_str());
 		}
 
-
-		// if not download the file to the cache
+		// failing that, download the file to the cache
 		HttpRequest get_request(url_parts, L"GET", cache_path);
 		DWORD status_code = 0;
 		HttpResponse get_response = loader.Load(get_request);
@@ -41,18 +49,18 @@ namespace otherpeoplecode
 			return ::LoadLibrary(cache_path.c_str());
 	}
 
-	void SetCachePath(const wchar_t* path)
+	void SetCachePath(const TCHAR* path)
 	{
-		Setup::GetObj().CachePath = path;
+		Setup::GetObj().CachePath = Utils::TcharToWString(path);
 	}
 
-	void SetUrlBasePath(const wchar_t* path)
+	void SetUrlBasePath(const TCHAR* path)
 	{
-		Setup::GetObj().UrlBasePath = path;
+		Setup::GetObj().UrlBasePath = Utils::TcharToWString(path);
 	}
 
-	void SetFileBasePath(const wchar_t* path)
+	void SetFileBasePath(const TCHAR* path)
 	{
-		Setup::GetObj().FileBasePath = path;
+		Setup::GetObj().FileBasePath = Utils::TcharToWString(path);
 	}
 }
