@@ -8,14 +8,13 @@ namespace otherpeoplecode
 {
 	HMODULE LoadLibraryWeb(const TCHAR* turl)
 	{
-		std::wstring url = Utils::TcharToWString(turl);
-
 		Loader loader;
 
 		// parse the URL first
+		std::wstring url = Setup::GetObj().UrlBasePath + Utils::TcharToWString(turl);
 		UrlParts url_parts;
-		const char* part_error = UrlParts::Parse(Setup::GetObj().UrlBasePath + url, url_parts);
-		if (part_error != nullptr) // not a valid URL?  treat it like a file!
+		std::wstring part_error = UrlParts::Parse(url, url_parts);
+		if (!part_error.empty()) // not a valid URL?  treat it like a file!
 			return ::LoadLibrary((Setup::GetObj().FileBasePath + url).c_str());
 
 		// look in the cache first
@@ -23,7 +22,7 @@ namespace otherpeoplecode
 		if (Utils::FileExists(cache_path))
 		{
 			// do a HEAD request and compare timestamp/EID/content-length
-			HttpRequest head_request(url_parts, L"HEAD", cache_path);
+			HttpRequest head_request(url, L"HEAD", cache_path);
 			DWORD head_status_code = 0;
 			HttpResponse head_response = loader.Load(head_request);
 			if (head_response.ErrorMessage != L"" || head_status_code != 200)
@@ -37,7 +36,7 @@ namespace otherpeoplecode
 		}
 
 		// failing that, download the file to the cache
-		HttpRequest get_request(url_parts, L"GET", cache_path);
+		HttpRequest get_request(url, L"GET", cache_path);
 		DWORD status_code = 0;
 		HttpResponse get_response = loader.Load(get_request);
 		if (get_response.ErrorMessage != L"" || status_code != 200)

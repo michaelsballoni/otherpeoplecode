@@ -1,14 +1,27 @@
 #pragma once
 
-#include "urlparts.h"
-
 #include <windows.h>
 #include <winhttp.h>
 
 #include <map>
+#include <string>
 
 namespace otherpeoplecode
 {
+	class HttpRequest
+	{
+	public:
+		HttpRequest(const std::wstring& url, const std::wstring httpVerb, const std::wstring& outputFilePath)
+			: Url(url)
+			, HttpVerb(httpVerb)
+			, OutputFilePath(outputFilePath)
+		{}
+
+		std::wstring Url;
+		std::wstring HttpVerb;
+		std::wstring OutputFilePath;
+	};
+
 	class HttpResponse
 	{
 	public:
@@ -26,20 +39,6 @@ namespace otherpeoplecode
 			ErrorMessage = msg;
 			return *this;
 		}
-	};
-
-	class HttpRequest
-	{
-	public:
-		HttpRequest(const UrlParts& urlParts, const std::wstring httpVerb, const std::wstring& outputFilePath)
-			: UrlParts(urlParts)
-			, HttpVerb(httpVerb)
-			, OutputFilePath(outputFilePath)
-		{}
-
-		UrlParts UrlParts;
-		std::wstring HttpVerb;
-		std::wstring OutputFilePath;
 	};
 
 	class Loader

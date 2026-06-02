@@ -2,6 +2,7 @@
 #include "CppUnitTest.h"
 #include "otherpeoplecode.h"
 #include "utils.h"
+#include "urlparts.h"
 #include "loader.h"
 
 #include <source_location>
@@ -43,8 +44,8 @@ namespace otherpeopletests
 			Assert::AreEqual(std::wstring(L"empty"), opc::Utils::SafePathStr(L"^%*#"));
 
 			std::vector<uint8_t> file_bytes;
-			const char* file_load_err = opc::Utils::LoadFileIntoMemory(L"..\\pch.h", file_bytes);
-			Assert::IsFalse(file_load_err != nullptr);
+			std::wstring file_load_err = opc::Utils::LoadFileIntoMemory(opc::Utils::ToWideStr(__FILE__), file_bytes);
+			Assert::IsTrue(file_load_err.empty());
 			Assert::IsFalse(file_bytes.empty());
 			file_bytes.push_back(0);
 			Assert::IsTrue(strstr((char*)file_bytes.data(), "#include") != nullptr);
@@ -63,8 +64,7 @@ namespace otherpeopletests
 			Assert::AreEqual(std::wstring(L"a"), un1_splitted[0]);
 
 			auto un3_splitted = opc::Utils::Split(L"", L"b");
-			Assert::AreEqual(size_t(1), un3_splitted.size());
-			Assert::AreEqual(std::wstring(L""), un3_splitted[0]);
+			Assert::AreEqual(size_t(0), un3_splitted.size());
 
 			auto one_splitted = opc::Utils::Split(L"foo:bar", L":");
 			Assert::AreEqual(size_t(2), one_splitted.size());
@@ -132,32 +132,32 @@ namespace otherpeopletests
 				opc::UrlParts parse;
 				opc::UrlParts parts;
 				std::wstring url = L"";
-				const char* err_str = parse.Parse(url, parts);
-				Assert::AreEqual(std::string("not url"), std::string(err_str));
+				std::wstring err_str = opc::UrlParts::Parse(url, parts);
+				Assert::AreEqual(std::wstring(L"not url"), err_str);
 			}
 
 			{
 				opc::UrlParts parse;
 				opc::UrlParts parts;
 				std::wstring url = L"http://";
-				const char* err_str = parse.Parse(url, parts);
-				Assert::AreEqual(std::string("server"), std::string(err_str));
+				std::wstring err_str = opc::UrlParts::Parse(url, parts);
+				Assert::AreEqual(std::wstring(L"server"), err_str);
 			}
 
 			{
 				opc::UrlParts parse;
 				opc::UrlParts parts;
 				std::wstring url = L"http://foo:bar";
-				const char* err_str = parse.Parse(url, parts);
-				Assert::AreEqual(std::string("port"), std::string(err_str));
+				std::wstring err_str = opc::UrlParts::Parse(url, parts);
+				Assert::AreEqual(std::wstring(L"port"), err_str);
 			}
 
 			{
 				opc::UrlParts parse;
 				opc::UrlParts parts;
 				std::wstring url = L"http://foo";
-				const char* err_str = parse.Parse(url, parts);
-				Assert::AreEqual(std::string(""), std::string(err_str));
+				std::wstring err_str = opc::UrlParts::Parse(url, parts);
+				Assert::AreEqual(std::wstring(L""), err_str);
 				Assert::AreEqual(std::wstring(L"foo"), parts.server);
 				Assert::AreEqual(std::wstring(L""), parts.request);
 				Assert::AreEqual(80, parts.port);
@@ -167,8 +167,8 @@ namespace otherpeopletests
 				opc::UrlParts parse;
 				opc::UrlParts parts;
 				std::wstring url = L"https://foo:914";
-				const char* err_str = parse.Parse(url, parts);
-				Assert::AreEqual(std::string(err_str), std::string(""));
+				std::wstring err_str = opc::UrlParts::Parse(url, parts);
+				Assert::AreEqual(std::wstring(err_str), std::wstring(L""));
 				Assert::AreEqual(std::wstring(L"foo"), parts.server);
 				Assert::AreEqual(std::wstring(L""), parts.request);
 				Assert::AreEqual(914, parts.port);
@@ -178,8 +178,8 @@ namespace otherpeopletests
 				opc::UrlParts parse;
 				opc::UrlParts parts;
 				std::wstring url = L"http://foo:924/request";
-				const char* err_str = parse.Parse(url, parts);
-				Assert::AreEqual(std::string(err_str), std::string(""));
+				std::wstring err_str = opc::UrlParts::Parse(url, parts);
+				Assert::AreEqual(std::wstring(err_str), std::wstring(L""));
 				Assert::AreEqual(std::wstring(L"foo"), parts.server);
 				Assert::AreEqual(std::wstring(L"request"), parts.request);
 				Assert::AreEqual(924, parts.port);
@@ -189,8 +189,8 @@ namespace otherpeopletests
 				opc::UrlParts parse;
 				opc::UrlParts parts;
 				std::wstring url = L"http://foo/request/more/some.dll";
-				const char* err_str = parse.Parse(url, parts);
-				Assert::AreEqual(std::string(err_str), std::string(""));
+				std::wstring err_str = opc::UrlParts::Parse(url, parts);
+				Assert::AreEqual(std::wstring(err_str), std::wstring(L""));
 				Assert::AreEqual(std::wstring(L"foo"), parts.server);
 				Assert::AreEqual(std::wstring(L"request/more/some.dll"), parts.request);
 			}
@@ -199,38 +199,26 @@ namespace otherpeopletests
 		TEST_METHOD(TestDownload)
 		{
 			{
-				opc::UrlParts url_parts;
-				const char* url_parse = opc::UrlParts::Parse(L"https://laksdfhaskdfsadlfsadf.com", url_parts);
-				Assert::AreEqual(std::string(""), std::string(url_parse));
-
-				opc::HttpRequest request(url_parts, L"GET", L"bad_request.html");
+				opc::HttpRequest request(L"https://laksdfhaskdfsadlfsadf.com", L"GET", L"bad_request.html");
 				opc::HttpResponse response = opc::Loader().Load(request);
 				Assert::AreEqual(std::wstring(L"send_request"), response.ErrorMessage);
 			}
 
 			{
-				opc::UrlParts url_parts;
-				const char* url_parse = opc::UrlParts::Parse(L"https://localhost/opctest/bad-url-part", url_parts);
-				Assert::AreEqual(std::string(""), std::string(url_parse));
-
-				opc::HttpRequest request(url_parts, L"GET", L"mballoni-bad_url_part.html");
+				opc::HttpRequest request(L"https://localhost/opctest/bad-url-part", L"GET", L"mballoni-bad_url_part.html");
 				opc::HttpResponse response = opc::Loader().Load(request);
 				Assert::IsTrue(response.StatusCode / 100 != 2);
 			}
 
 			{
-				opc::UrlParts url_parts;
-				const char* url_parse = opc::UrlParts::Parse(L"https://localhost/opctest/index.html", url_parts);
-				Assert::AreEqual(std::string(""), std::string(url_parse));
-
-				opc::HttpRequest request(url_parts, L"GET", L"local-index.html");
+				opc::HttpRequest request(L"https://localhost/opctest/index.html", L"GET", L"local-index.html");
 				opc::HttpResponse response = opc::Loader().Load(request);
 				Assert::AreEqual(DWORD(200), response.StatusCode);
 				Assert::AreEqual(std::wstring(L""), std::wstring(response.ErrorMessage));
 
 				std::vector<uint8_t> dl_bytes;
-				const char* open_file_err_str = opc::Utils::LoadFileIntoMemory(L"local-index.html", dl_bytes);
-				Assert::AreEqual(std::string(""), std::string(open_file_err_str));
+				std::wstring open_file_err_str = opc::Utils::LoadFileIntoMemory(L"local-index.html", dl_bytes);
+				Assert::AreEqual(std::wstring(L""), open_file_err_str);
 				std::wstring dl_str = opc::Utils::AsciiBytesToWStr(dl_bytes);
 				Assert::IsTrue(dl_str.find(L"foo") != std::wstring::npos);
 			}

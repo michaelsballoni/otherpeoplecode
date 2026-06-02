@@ -11,6 +11,11 @@ namespace otherpeoplecode
 	{
 		HttpResponse response(request.OutputFilePath);
 
+		UrlParts url_parts;
+		std::wstring url_parts_error = UrlParts::Parse(request.Url, url_parts);
+		if (!url_parts_error.empty())
+			return response.OnErr(url_parts_error);
+
 #pragma warning(push)
 #pragma warning(disable : 4996) // _CRT_SECURE_NO_WARNINGS
 		m_file = ::_wfopen(response.OutputFilePath.c_str(), L"wb");
@@ -22,8 +27,8 @@ namespace otherpeoplecode
 			::WinHttpConnect
 			(
 				m_session, 
-				request.UrlParts.server.c_str(), 
-				request.UrlParts.port, 
+				url_parts.server.c_str(),
+				url_parts.port,
 				0
 			);
 		if (m_connection == nullptr)
@@ -35,11 +40,11 @@ namespace otherpeoplecode
 			(
 				m_connection, 
 				request.HttpVerb.c_str(), 
-				request.UrlParts.request.c_str(), 
+				url_parts.request.c_str(),
 				nullptr, 
 				WINHTTP_NO_REFERER, 
 				(LPCWSTR*)&types, 
-				request.UrlParts.port == 443 ? WINHTTP_FLAG_SECURE : 0
+				url_parts.port == 443 ? WINHTTP_FLAG_SECURE : 0
 			);
 		if (m_request == nullptr)
 			return response.OnErr(L"open_request");

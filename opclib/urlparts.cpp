@@ -13,7 +13,7 @@ namespace otherpeoplecode
 		return output;
 	}
 
-	const char* UrlParts::Parse(std::wstring url, UrlParts& parts)
+	std::wstring UrlParts::Parse(std::wstring url, UrlParts& parts)
 	{
 		std::wstring lower_path;
 		for (wchar_t u : url)
@@ -22,7 +22,7 @@ namespace otherpeoplecode
 		bool is_http = Utils::StartsWith(lower_path, L"http://");
 		bool is_https = Utils::StartsWith(lower_path, L"https://");
 		if (!is_http && !is_https)
-			return "not url";
+			return L"not url";
 
 		size_t after_http_idx = url.find(L"//") + 2;
 		std::wstring server_and_rest = url.substr(after_http_idx);
@@ -38,19 +38,19 @@ namespace otherpeoplecode
 			parts.request = server_and_rest.substr(after_server_idx + 1);
 		}
 		if (parts.server.empty())
-			return "server";
+			return L"server";
 
 		size_t port_idx = parts.server.find(':');
 		if (port_idx != std::wstring::npos)
 		{
 			parts.port = _wtoi(parts.server.substr(port_idx + 1).c_str());
 			if (parts.port <= 0 || parts.port > USHRT_MAX)
-				return "port";
+				return L"port";
 			parts.server = parts.server.substr(0, port_idx);
 		}
 		else
 			parts.port = is_http ? 80 : 443;
 
-		return "";
+		return L"";
 	}
 }

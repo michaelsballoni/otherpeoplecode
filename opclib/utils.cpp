@@ -112,38 +112,46 @@ namespace otherpeoplecode
 		throw std::runtime_error(msg + std::string(": ") + item_str);
 	}
 
-	const char* Utils::LoadFileIntoMemory(const std::wstring& filePath, std::vector<uint8_t>& output)
+	std::wstring Utils::LoadFileIntoMemory(const std::wstring& filePath, std::vector<uint8_t>& output)
 	{
 #pragma warning(push)
 #pragma warning(disable : 4996) // _CRT_SECURE_NO_WARNINGS
 		FILE* file = ::_wfopen(filePath.c_str(), L"rb");
 		if (!file)
-			return "fopen";
+			return L"fopen";
 #pragma warning(pop)
 		if (file == nullptr)
-			return "fopen";
+			return L"fopen";
 		if (::fseek(file, 0, SEEK_END) != 0)
-			return "fseek";
+			return L"fseek";
 		long file_len = ::ftell(file);
 		if (file_len < 0)
-			return "ftell";
+			return L"ftell";
 		if (::fseek(file, 0, SEEK_SET) != 0)
-			return "fseek2";
+			return L"fseek2";
 
 		output.reserve(file_len);
 
 		char buffer[4096];
+		size_t total_read = 0;
 		while (true)
 		{
 			size_t read_amount = ::fread(buffer, 1, sizeof(buffer), file);
+			total_read += read_amount;
 			if (read_amount == 0)
-				break;
+			{
+				if (total_read != file_len)
+					return L"fread";
+				else
+					break;
+			}
 
 			size_t original_size = output.size();
 			output.resize(original_size + read_amount);
 			memcpy(output.data() + original_size, buffer, read_amount);
 		}
-		return "";
+
+		return L"";
 	}
 
 	std::wstring Utils::AsciiBytesToWStr(const std::vector<uint8_t>& bytes)
@@ -229,5 +237,74 @@ namespace otherpeoplecode
 		std::wstring result(size_needed - 1, L'\0'); // -1 to exclude the null terminator
 		MultiByteToWideChar(CP_ACP, 0, str, -1, result.data(), size_needed);
 		return result;
+	}
+
+	std::wstring Utils::ToWideStr(const std::string& str)
+	{
+		if (str.empty())
+			return std::wstring();
+
+		bool allNarrow = true;
+		{
+			const unsigned char* bytes = reinterpret_cast<const unsigned char*>(str.data());
+			for (size_t i = 0; i < str.size(); ++i)
+			{
+				if (bytes[i] > 127)
+				{
+					allNarrow = false;
+					break;
+				}
+			}
+		}
+
+		if (allNarrow)
+		{
+			std::wstring retVal;
+			retVal.reserve(str.size());
+			for (auto c : str)
+				retVal += char(c);
+			return retVal;
+		}
+
+		int needed = MultiByteToWideChar(CP_UTF8, 0, str.data(), int(str.size()), nullptr, 0);
+		if (needed <= 0)
+			return L"";
+
+		std::wstring result(needed, 0);
+		MultiByteToWideChar(CP_UTF8, 0, str.data(), int(str.size()), result.data(), needed);
+		return result;
+	}
+
+	std::string Utils::ToNarrowStr(const std::wstring& str)
+	{
+		if (str.empty())
+			return std::string();
+
+		bool allAscii = true;
+		for (wchar_t c : str)
+		{
+			if (c <= 0 || c > 127)
+			{
+				allAscii = false;
+				break;
+			}
+		}
+
+		if (allAscii)
+		{
+			std::string retVal;
+			retVal.reserve(str.size());
+			for (auto c : str)
+				retVal += char(c);
+			return retVal;
+		}
+
+		int needed = WideCharToMultiByte(CP_UTF8, 0, str.data(), int(str.size()), nullptr, 0, nullptr, nullptr);
+		if (needed <= 0)
+			return "";
+
+		std::string output(needed, 0);
+		WideCharToMultiByte(CP_UTF8, 0, str.data(), int(str.size()), output.data(), needed, nullptr, nullptr);
+		return output;
 	}
 }
