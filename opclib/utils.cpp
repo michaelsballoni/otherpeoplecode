@@ -162,6 +162,17 @@ namespace otherpeoplecode
 		return output;
 	}
 
+	std::wstring Utils::Utf8ToWString(const std::string& str)
+	{
+		if (str.empty()) 
+			return std::wstring();
+
+		int size_needed = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), NULL, 0);
+		std::wstring wstr(size_needed, L'\0');
+		MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), &wstr[0], size_needed);
+		return wstr;
+	}
+
 	std::string Utils::WstringToUtf8(const std::wstring& str)
 	{
 		if (str.empty())
@@ -306,5 +317,11 @@ namespace otherpeoplecode
 		std::string output(needed, 0);
 		WideCharToMultiByte(CP_UTF8, 0, str.data(), int(str.size()), output.data(), needed, nullptr, nullptr);
 		return output;
+	}
+
+	bool Utils::IsUrl(const std::wstring& maybeUrl)
+	{
+		std::wstring lower = ToLower(maybeUrl);
+		return StartsWith(lower, L"http://") || StartsWith(lower, L"https://");
 	}
 }

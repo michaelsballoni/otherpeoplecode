@@ -6,6 +6,8 @@
 #include <map>
 #include <string>
 
+#include "utils.h"
+
 namespace otherpeoplecode
 {
 	class HttpRequest
@@ -39,6 +41,19 @@ namespace otherpeoplecode
 			ErrorMessage = msg;
 			return *this;
 		}
+
+		/* FORNOW - Unused 
+		bool DoHeadersMatch(const std::map<std::wstring, std::wstring>& headersToCompare)
+		{
+			for (auto compare_it : headersToCompare)
+			{
+				auto header_it = Headers.find(Utils::ToLower(compare_it.first));
+				if (header_it == Headers.end() || header_it->second != compare_it.second)
+					return false;
+			}
+			return true;
+		}
+		*/
 	};
 
 	class Loader

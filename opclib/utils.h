@@ -6,9 +6,6 @@ namespace otherpeoplecode
 	{
 	public:
 		std::wstring CachePath;
-		std::wstring UrlBasePath;
-		std::wstring FileBasePath;
-
 		static Setup& GetObj();
 	};
 
@@ -23,11 +20,13 @@ namespace otherpeoplecode
 		static void RaiseItemError(const char* msg, const wchar_t* item);
 		static std::wstring LoadFileIntoMemory(const std::wstring& filePath, std::vector<uint8_t>& output);
 		static std::wstring AsciiBytesToWStr(const std::vector<uint8_t>& bytes);
+		static std::wstring Utf8ToWString(const std::string& str);
 		static std::string WstringToUtf8(const std::wstring& str);
 		static std::vector<std::wstring> Split(const std::wstring& str, const std::wstring& seperator);
 		static std::wstring TcharToWString(const wchar_t* str);
 		static std::wstring TcharToWString(const char* str);
 		static std::wstring ToWideStr(const std::string& str);
 		static std::string ToNarrowStr(const std::wstring& str);
+		static bool IsUrl(const std::wstring& maybeUrl);
 	};
 }

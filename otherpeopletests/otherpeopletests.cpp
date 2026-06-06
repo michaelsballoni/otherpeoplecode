@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CppUnitTest.h"
 #include "otherpeoplecode.h"
+#include "inifile.h"
 #include "utils.h"
 #include "urlparts.h"
 #include "loader.h"
@@ -23,10 +24,10 @@ namespace otherpeopletests
 
 			std::string source_location_str = std::source_location::current().file_name();
 			Assert::IsTrue(opc::Utils::FileExists(std::wstring(source_location_str.begin(), source_location_str.end())));
-			Assert::IsFalse(opc::Utils::FileExists(L"asd;lfjas;lfdj;lasdfj"));
+			Assert::IsTrue(!opc::Utils::FileExists(L"asd;lfjas;lfdj;lasdfj"));
 
 			Assert::IsTrue(opc::Utils::StartsWith(L"foo", L"fo"));
-			Assert::IsFalse(opc::Utils::StartsWith(L"foo", L"bar"));
+			Assert::IsTrue(!opc::Utils::StartsWith(L"foo", L"bar"));
 
 			Assert::AreEqual(std::wstring(L""), opc::Utils::Trim(L""));
 			Assert::AreEqual(std::wstring(L""), opc::Utils::Trim(L" "));
@@ -46,7 +47,7 @@ namespace otherpeopletests
 			std::vector<uint8_t> file_bytes;
 			std::wstring file_load_err = opc::Utils::LoadFileIntoMemory(opc::Utils::ToWideStr(__FILE__), file_bytes);
 			Assert::IsTrue(file_load_err.empty());
-			Assert::IsFalse(file_bytes.empty());
+			Assert::IsTrue(!file_bytes.empty());
 			file_bytes.push_back(0);
 			Assert::IsTrue(strstr((char*)file_bytes.data(), "#include") != nullptr);
 
@@ -75,7 +76,29 @@ namespace otherpeopletests
 			Assert::AreEqual(size_t(2), two_splitted.size());
 			Assert::AreEqual(std::wstring(L"foo"), two_splitted[0]);
 			Assert::AreEqual(std::wstring(L"bar"), two_splitted[1]);
+
+			Assert::IsTrue(!opc::Utils::IsUrl(L""));
+			Assert::IsTrue(!opc::Utils::IsUrl(L"foobar.blet"));
+			Assert::IsTrue(opc::Utils::IsUrl(L"http://hfoobar.blet"));
+			Assert::IsTrue(opc::Utils::IsUrl(L"https://sfoobar.blet"));
 		}
+
+		/* FORNOW - Unused
+		TEST_METHOD(TestHeaderCompare)
+		{
+			opc::HttpResponse response(L"");
+			Assert::IsTrue(response.DoHeadersMatch({ {L"", L""} }));
+
+			response.Headers[L"foo"] = L"bar";
+			Assert::IsTrue(response.DoHeadersMatch({ {L"", L""} }));
+			Assert::IsTrue(response.DoHeadersMatch({ {L"foo", L"bar"} }));
+			Assert::IsTrue(!response.DoHeadersMatch({ {L"foo", L"blet"} }));
+			Assert::IsTrue(response.DoHeadersMatch({ {L"foomonk", L""} }));
+			Assert::IsTrue(response.DoHeadersMatch({ {L"FOO", L"blet"} }));
+			Assert::IsTrue(response.DoHeadersMatch({ {L"FOO", L"bar"} }));
+			Assert::IsTrue(!response.DoHeadersMatch({ {L"foo", L"BAR"} }));
+		}
+		*/
 
 		TEST_METHOD(TestRaiseItemError)
 		{
@@ -114,14 +137,16 @@ namespace otherpeopletests
 			try {
 				opc::Utils::RaiseItemError("msg", L"");
 				Assert::Fail();
-			} catch (const std::exception& exp) {
+			}
+			catch (const std::exception& exp) {
 				Assert::AreEqual(std::string("msg"), std::string(exp.what()));
 			}
 
 			try {
 				opc::Utils::RaiseItemError("msg", L"item");
 				Assert::Fail();
-			} catch (const std::exception& exp) {
+			}
+			catch (const std::exception& exp) {
 				Assert::AreEqual(std::string("msg: item"), std::string(exp.what()));
 			}
 		}
@@ -194,6 +219,21 @@ namespace otherpeopletests
 				Assert::AreEqual(std::wstring(L"foo"), parts.server);
 				Assert::AreEqual(std::wstring(L"request/more/some.dll"), parts.request);
 			}
+		}
+
+		TEST_METHOD(TestIniFile)
+		{
+			auto src = std::map<std::wstring, std::wstring>();
+			src[L"fOO"] = L"bar";
+			src[L"blet "] = L"MONKey";
+			Assert::IsTrue(opc::IniFile::PutEntries(L"test_opc_file.ini", src));
+			auto entries_opt = opc::IniFile::GetEntries(L"test_opc_file.ini");
+			Assert::IsTrue(entries_opt.has_value());
+			auto entries_dict = entries_opt.value();
+			Assert::AreEqual(size_t(2), entries_dict.size());
+			Assert::AreEqual(std::wstring(L"bar"), entries_dict[L"foo"]);
+			std::wstring blet_str = entries_dict[L"blet"];
+			Assert::AreEqual(std::wstring(L"MONKey"), entries_dict[L"blet"]);
 		}
 
 		TEST_METHOD(TestDownload)
