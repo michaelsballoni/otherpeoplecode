@@ -199,28 +199,33 @@ namespace otherpeopletests
 		TEST_METHOD(TestDownload)
 		{
 			{
-				opc::HttpRequest request(L"https://laksdfhaskdfsadlfsadf.com", L"GET", L"bad_request.html");
+				// bad URL
+				opc::HttpRequest request(L"http://)(*&^)*(^)*(&^)*(&.com", L"GET", L"mballoni-bad_request.html");
 				opc::HttpResponse response = opc::Loader().Load(request);
-				Assert::AreEqual(std::wstring(L"send_request"), response.ErrorMessage);
-			}
-
-			{
-				opc::HttpRequest request(L"https://localhost/opctest/bad-url-part", L"GET", L"mballoni-bad_url_part.html");
-				opc::HttpResponse response = opc::Loader().Load(request);
+				Assert::AreEqual(std::wstring(L"connect"), response.ErrorMessage);
 				Assert::IsTrue(response.StatusCode / 100 != 2);
+				Assert::AreEqual(DWORD(0), response.StatusCode);
 			}
 
 			{
-				opc::HttpRequest request(L"https://localhost/opctest/index.html", L"GET", L"local-index.html");
+				// bad request
+				opc::HttpRequest request(L"http://localhost/opctest/bad-url-part", L"GET", L"mballoni-bad_url_part.html");
 				opc::HttpResponse response = opc::Loader().Load(request);
-				Assert::AreEqual(DWORD(200), response.StatusCode);
-				Assert::AreEqual(std::wstring(L""), std::wstring(response.ErrorMessage));
+				Assert::AreEqual(std::wstring(L""), response.ErrorMessage);
+				Assert::AreEqual(DWORD(404), response.StatusCode);
+			}
 
-				std::vector<uint8_t> dl_bytes;
-				std::wstring open_file_err_str = opc::Utils::LoadFileIntoMemory(L"local-index.html", dl_bytes);
-				Assert::AreEqual(std::wstring(L""), open_file_err_str);
-				std::wstring dl_str = opc::Utils::AsciiBytesToWStr(dl_bytes);
-				Assert::IsTrue(dl_str.find(L"foo") != std::wstring::npos);
+			{
+				// good request
+				opc::HttpRequest request(L"http://localhost/opctest/index.html", L"GET", L"mballoni-local-index.html");
+				opc::HttpResponse response = opc::Loader().Load(request);
+				Assert::AreEqual(std::wstring(L""), response.ErrorMessage);
+				Assert::AreEqual(DWORD(200), response.StatusCode);
+				std::vector<uint8_t> file_bytes;
+				std::wstring file_error = opc::Utils::LoadFileIntoMemory(L"mballoni-local-index.html", file_bytes);
+				Assert::AreEqual(std::wstring(L""), file_error);
+				std::wstring file_str = opc::Utils::AsciiBytesToWStr(file_bytes);
+				Assert::AreEqual(std::wstring(L"foo"), file_str);
 			}
 		}
 	};
