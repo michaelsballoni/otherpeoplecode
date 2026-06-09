@@ -6,10 +6,20 @@ namespace otherpeoplecode
 {
 	std::wstring UrlParts::GetCachePath(std::wstring cacheDirectoryPath)
 	{
-		std::wstring output = cacheDirectoryPath + L"\\" + server;
+		std::wstring output;
+		if (!cacheDirectoryPath.empty())
+			output += cacheDirectoryPath + L"\\";
+		else
+			output += L"OpcCache\\";	// wherever we are
+		
+		std::filesystem::create_directories(output);
+
+		output += Utils::ToSafeStr(server);
 		if (!request.empty())
-			output += L"_" + request;
+			output += L"_" + Utils::ToSafeStr(request);
+		
 		output += L"_" + std::to_wstring(port);
+		
 		return output;
 	}
 

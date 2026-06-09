@@ -14,7 +14,7 @@ namespace otherpeoplecode
 		std::wstring ret_val;
 		ret_val.reserve(str.size());
 		for (auto c : str)
-			ret_val += towlower(c);
+			ret_val += ::towlower(c);
 		return ret_val;
 	}
 
@@ -42,9 +42,9 @@ namespace otherpeoplecode
 			return std::wstring();
 
 		if (str.length() == 1)
-			return iswspace(str[0]) ? std::wstring() : str;
+			return ::iswspace(str[0]) ? std::wstring() : str;
 
-		if (!iswspace(str.front()) && !iswspace(str.back()))
+		if (!::iswspace(str.front()) && !::iswspace(str.back()))
 			return str;
 
 		std::wstring retVal;
@@ -52,7 +52,7 @@ namespace otherpeoplecode
 
 		// skip whitespace
 		size_t c = 0;
-		while (c < str.length() && iswspace(str[c]))
+		while (c < str.length() && ::iswspace(str[c]))
 			++c;
 
 		// copy the rest
@@ -60,7 +60,7 @@ namespace otherpeoplecode
 			retVal.push_back(str[c++]);
 
 		// pop whitespace
-		while (!retVal.empty() && iswspace(retVal.back()))
+		while (!retVal.empty() && ::iswspace(retVal.back()))
 			retVal.pop_back();
 
 		return retVal;
@@ -141,7 +141,10 @@ namespace otherpeoplecode
 			if (read_amount == 0)
 			{
 				if (total_read != file_len)
+				{
+					::fclose(file);
 					return L"fread";
+				}
 				else
 					break;
 			}
@@ -150,13 +153,15 @@ namespace otherpeoplecode
 			output.resize(original_size + read_amount);
 			memcpy(output.data() + original_size, buffer, read_amount);
 		}
-
+		
+		::fclose(file);
 		return L"";
 	}
 
 	std::wstring Utils::AsciiBytesToWStr(const std::vector<uint8_t>& bytes)
 	{
 		std::wstring output;
+		output.reserve(bytes.size());
 		for (auto b : bytes)
 			output += (wchar_t)(char)b;
 		return output;
@@ -167,9 +172,9 @@ namespace otherpeoplecode
 		if (str.empty()) 
 			return std::wstring();
 
-		int size_needed = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), NULL, 0);
+		int size_needed = ::MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), NULL, 0);
 		std::wstring wstr(size_needed, L'\0');
-		MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), &wstr[0], size_needed);
+		::MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), &wstr[0], size_needed);
 		return wstr;
 	}
 
@@ -178,9 +183,9 @@ namespace otherpeoplecode
 		if (str.empty())
 			return std::string();
 
-		int size_needed = WideCharToMultiByte(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0, NULL, NULL);
+		int size_needed = ::WideCharToMultiByte(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0, NULL, NULL);
 		std::string output(size_needed, 0);
-		WideCharToMultiByte(CP_UTF8, 0, str.data(), (int)str.size(), output.data(), size_needed, NULL, NULL);
+		::WideCharToMultiByte(CP_UTF8, 0, str.data(), (int)str.size(), output.data(), size_needed, NULL, NULL);
 		return output;
 	}
 
@@ -241,12 +246,12 @@ namespace otherpeoplecode
 		if (!str || !*str)
 			return L"";
 
-		int size_needed = MultiByteToWideChar(CP_ACP, 0, str, -1, nullptr, 0);
+		int size_needed = ::MultiByteToWideChar(CP_ACP, 0, str, -1, nullptr, 0);
 		if (size_needed <= 0)
 			return L"";
 
 		std::wstring result(size_needed - 1, L'\0'); // -1 to exclude the null terminator
-		MultiByteToWideChar(CP_ACP, 0, str, -1, result.data(), size_needed);
+		::MultiByteToWideChar(CP_ACP, 0, str, -1, result.data(), size_needed);
 		return result;
 	}
 
@@ -277,12 +282,12 @@ namespace otherpeoplecode
 			return retVal;
 		}
 
-		int needed = MultiByteToWideChar(CP_UTF8, 0, str.data(), int(str.size()), nullptr, 0);
+		int needed = ::MultiByteToWideChar(CP_UTF8, 0, str.data(), int(str.size()), nullptr, 0);
 		if (needed <= 0)
 			return L"";
 
 		std::wstring result(needed, 0);
-		MultiByteToWideChar(CP_UTF8, 0, str.data(), int(str.size()), result.data(), needed);
+		::MultiByteToWideChar(CP_UTF8, 0, str.data(), int(str.size()), result.data(), needed);
 		return result;
 	}
 
@@ -310,12 +315,12 @@ namespace otherpeoplecode
 			return retVal;
 		}
 
-		int needed = WideCharToMultiByte(CP_UTF8, 0, str.data(), int(str.size()), nullptr, 0, nullptr, nullptr);
+		int needed = ::WideCharToMultiByte(CP_UTF8, 0, str.data(), int(str.size()), nullptr, 0, nullptr, nullptr);
 		if (needed <= 0)
 			return "";
 
 		std::string output(needed, 0);
-		WideCharToMultiByte(CP_UTF8, 0, str.data(), int(str.size()), output.data(), needed, nullptr, nullptr);
+		::WideCharToMultiByte(CP_UTF8, 0, str.data(), int(str.size()), output.data(), needed, nullptr, nullptr);
 		return output;
 	}
 
@@ -323,5 +328,25 @@ namespace otherpeoplecode
 	{
 		std::wstring lower = ToLower(maybeUrl);
 		return StartsWith(lower, L"http://") || StartsWith(lower, L"https://");
+	}
+
+	std::wstring Utils::ToSafeStr(const std::wstring& str)
+	{
+		std::wstring strsafe;
+		for (auto c : str)
+		{
+			if (::iswalnum(c))
+				strsafe += c;
+			else if (!strsafe.empty() && strsafe.back() != L'_')
+				strsafe += L'_';
+		}
+
+		if (!strsafe.empty() && strsafe.back() == L'_')
+			strsafe.pop_back();
+
+		if (strsafe.empty())
+			strsafe = L"unsafe_string";
+
+		return strsafe;
 	}
 }

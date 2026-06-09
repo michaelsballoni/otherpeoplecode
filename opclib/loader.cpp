@@ -13,12 +13,16 @@ namespace otherpeoplecode
 		if (!url_parts_error.empty())
 			return response.OnErr(url_parts_error);
 
+		bool read_response_payload = request.HttpVerb != L"HEAD";
+		if (read_response_payload)
+		{
 #pragma warning(push)
 #pragma warning(disable : 4996) // _CRT_SECURE_NO_WARNINGS
-		m_file = ::_wfopen(response.OutputFilePath.c_str(), L"wb");
-		if (!m_file)
-			return response.OnErr(L"fopen");
+			m_file = ::_wfopen(response.OutputFilePath.c_str(), L"wb");
+			if (!m_file)
+				return response.OnErr(L"fopen");
 #pragma warning(pop)
+		}
 
 		m_connection = 
 			::WinHttpConnect
@@ -84,7 +88,7 @@ namespace otherpeoplecode
 		}
 
 		DWORD dwHeadersSize = 0;
-		WinHttpQueryHeaders
+		::WinHttpQueryHeaders
 		(
 			m_request,
 			WINHTTP_QUERY_RAW_HEADERS_CRLF,
@@ -93,13 +97,13 @@ namespace otherpeoplecode
 			&dwHeadersSize,
 			WINHTTP_NO_HEADER_INDEX
 		);
-		if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+		if (::GetLastError() != ERROR_INSUFFICIENT_BUFFER)
 			return response.OnErr(L"query_headers");
 
 		std::wstring headers_value(dwHeadersSize, 0);
 		if
 		(
-			!WinHttpQueryHeaders
+			!::WinHttpQueryHeaders
 			(
 				m_request,
 				WINHTTP_QUERY_RAW_HEADERS_CRLF,
@@ -112,7 +116,7 @@ namespace otherpeoplecode
 		{
 			return response.OnErr(L"get_headers");
 		}
-		if (GetLastError() == ERROR_WINHTTP_HEADER_NOT_FOUND)
+		if (::GetLastError() == ERROR_WINHTTP_HEADER_NOT_FOUND)
 			return response.OnErr(L"headers_not_found");
 
 		auto headers_list = Utils::Split(headers_value, L"\r\n");
@@ -128,29 +132,33 @@ namespace otherpeoplecode
 			response.Headers[name] = value; // last wins
 		}
 
-		DWORD dwSize = 0;
-		std::vector<uint8_t> buffer;
-		do 
+		if (read_response_payload)
 		{
-			if (!::WinHttpQueryDataAvailable(m_request, &dwSize))
-				return response.OnErr(L"query_data_available");
-			if (dwSize == 0)
-				break;
+			DWORD dwSize = 0;
+			std::vector<uint8_t> buffer;
+			do
+			{
+				if (!::WinHttpQueryDataAvailable(m_request, &dwSize))
+					return response.OnErr(L"query_data_available");
+				if (dwSize == 0)
+					break;
 
-			buffer.resize(dwSize);
-			memset(buffer.data(), 0, buffer.size());
+				buffer.resize(dwSize);
+				memset(buffer.data(), 0, buffer.size());
 
-			DWORD dwDownloaded = 0;
-			if (!::WinHttpReadData(m_request, buffer.data(), dwSize, &dwDownloaded))
-				return response.OnErr(L"read_data");
+				DWORD dwDownloaded = 0;
+				if (!::WinHttpReadData(m_request, buffer.data(), dwSize, &dwDownloaded))
+					return response.OnErr(L"read_data");
 
-			size_t wrote_size = ::fwrite(buffer.data(), 1, buffer.size(), m_file);
-			if (wrote_size != buffer.size())
-				return response.OnErr(L"fwrite");
-		} while (dwSize > 0);
+				size_t wrote_size = ::fwrite(buffer.data(), 1, buffer.size(), m_file);
+				if (wrote_size != buffer.size())
+					return response.OnErr(L"fwrite");
+			} while (dwSize > 0);
 
-		::fclose(m_file);
-		m_file = nullptr;
+			::fclose(m_file);
+			m_file = nullptr;
+		}
+
 		return response;
 	}
 }

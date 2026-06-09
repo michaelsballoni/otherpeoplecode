@@ -28,5 +28,6 @@ namespace otherpeoplecode
 		static std::wstring ToWideStr(const std::string& str);
 		static std::string ToNarrowStr(const std::wstring& str);
 		static bool IsUrl(const std::wstring& maybeUrl);
+		static std::wstring ToSafeStr(const std::wstring& str);
 	};
 }

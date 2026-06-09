@@ -82,24 +82,15 @@ namespace otherpeopletests
 			Assert::IsTrue(!opc::Utils::IsUrl(L"foobar.blet"));
 			Assert::IsTrue(opc::Utils::IsUrl(L"http://hfoobar.blet"));
 			Assert::IsTrue(opc::Utils::IsUrl(L"https://sfoobar.blet"));
-		}
 
-		/* FORNOW - Unused
-		TEST_METHOD(TestHeaderCompare)
-		{
-			opc::HttpResponse response(L"");
-			Assert::IsTrue(response.DoHeadersMatch({ {L"", L""} }));
-
-			response.Headers[L"foo"] = L"bar";
-			Assert::IsTrue(response.DoHeadersMatch({ {L"", L""} }));
-			Assert::IsTrue(response.DoHeadersMatch({ {L"foo", L"bar"} }));
-			Assert::IsTrue(!response.DoHeadersMatch({ {L"foo", L"blet"} }));
-			Assert::IsTrue(response.DoHeadersMatch({ {L"foomonk", L""} }));
-			Assert::IsTrue(response.DoHeadersMatch({ {L"FOO", L"blet"} }));
-			Assert::IsTrue(response.DoHeadersMatch({ {L"FOO", L"bar"} }));
-			Assert::IsTrue(!response.DoHeadersMatch({ {L"foo", L"BAR"} }));
+			Assert::AreEqual(std::wstring(L"unsafe_string"), opc::Utils::ToSafeStr(L""));
+			Assert::AreEqual(std::wstring(L"f"), opc::Utils::ToSafeStr(L"f"));
+			Assert::AreEqual(std::wstring(L"foo"), opc::Utils::ToSafeStr(L"foo"));
+			Assert::AreEqual(std::wstring(L"foo_bar"), opc::Utils::ToSafeStr(L"foo.bar"));
+			Assert::AreEqual(std::wstring(L"foo_bar22"), opc::Utils::ToSafeStr(L"foo.bar22"));
+			Assert::AreEqual(std::wstring(L"foo_bar2_2_extra"), opc::Utils::ToSafeStr(L"foo.bar2.2-extra"));
+			Assert::AreEqual(std::wstring(L"foo_bar2_2_trail"), opc::Utils::ToSafeStr(L"foo.bar2.2..-trail..."));
 		}
-		*/
 
 		TEST_METHOD(TestRaiseItemError)
 		{
@@ -268,6 +259,14 @@ namespace otherpeopletests
 				std::wstring file_str = opc::Utils::AsciiBytesToWStr(file_bytes);
 				Assert::AreEqual(std::wstring(L"foo"), file_str);
 			}
+		}
+
+		TEST_METHOD(TestLoadLibraryWeb)
+		{
+			HMODULE module = opc::LoadLibraryWeb(L"http://localhost/opctest/winhttp.dll");
+			Assert::IsTrue(module != nullptr);
+			Assert::IsTrue(::GetProcAddress(module, "WinHttpAddRequestHeadersEx") != nullptr);
+			::FreeLibrary(module);
 		}
 	};
 }
