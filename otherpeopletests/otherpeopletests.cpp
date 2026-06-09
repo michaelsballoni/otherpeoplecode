@@ -6,6 +6,7 @@
 #include "urlparts.h"
 #include "loader.h"
 
+#include <iostream>
 #include <source_location>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;

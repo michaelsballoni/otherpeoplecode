@@ -23,8 +23,9 @@ namespace otherpeoplecode
 		in_file.close();
 
 		// erase the BOM
-		if (!file_str.size() >= 2 && file_str[0] == 0xFF && file_str[1] == 0xFE)
-			file_str.erase(0, 2);
+		
+		if (file_str.size() >= 2 && file_str.compare(0, 3, "\xEF\xBB\xBF") == 0)
+			file_str.erase(0, 3);
 
 		// get the lines
 		std::vector<std::wstring> lines = Utils::Split(Utils::Utf8ToWString(file_str), L"\r\n");
@@ -43,6 +44,8 @@ namespace otherpeoplecode
 
 			std::wstring key = Utils::ToLower(Utils::Trim(split[0]));
 			std::wstring val = Utils::Trim(split[1]);
+			if (key.empty())
+				continue;
 
 			// set the output, last in wins
 			output[key] = val;
