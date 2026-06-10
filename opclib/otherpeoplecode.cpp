@@ -6,12 +6,17 @@
 #include "loader.h"
 
 #include <iostream>
+#include <mutex>
 
 namespace otherpeoplecode
 {
+	std::wstring g_cachePath;
+	std::mutex g_loadMutex;
+
 	HMODULE otherpeoplecode::LoadLibraryWeb(const TCHAR* turl)
 	{
-		Loader loader;
+		// one load at a time, protect g_cachePath, and servers
+		std::unique_lock lock(g_loadMutex);
 
 		// punt on non-URL inputs first...file?
 		std::wstring url = Utils::TcharToWString(turl);
@@ -34,18 +39,19 @@ namespace otherpeoplecode
 
 		// look in the cache first
 		std::vector<std::wstring> headers_to_compare{ L"Last-Modified", L"Content-Length", L"ETag" };
-		std::wstring url_cache_path = url_parts.GetCachePath(Setup::GetObj().CachePath) + L".dll";
+		std::wstring url_cache_path = url_parts.GetCachePath(g_cachePath) + L".dll";
 		std::wstring url_cache_info_path = url_cache_path + L".info";
 		if (Utils::FileExists(url_cache_path) && Utils::FileExists(url_cache_info_path))
 		{
 			// do the HEAD
 			std::wcout << L"LoadLibraryWeb: Local file and INI exist; will make HEAD request to check for changes" << std::endl;
+			Loader head_loader;
 			HttpRequest head_request(url, L"HEAD", url_cache_path);
-			HttpResponse head_response = loader.Load(head_request);
+			HttpResponse head_response = head_loader.Load(head_request);
 			if (head_response.StatusCode / 100 != 2)
 			{
 				std::wcout << L"LoadLibraryWeb: HEAD failed: " << head_response.StatusCode << " " << head_response.ErrorMessage << std::endl;
-				::SetLastError(ERROR_INTERNET_CANNOT_CONNECT);
+				::SetLastError(ERROR_WINHTTP_INVALID_SERVER_RESPONSE);
 				return NULL;
 			}
 
@@ -72,19 +78,34 @@ namespace otherpeoplecode
 							head_it != head_response.Headers.end() 
 							&& 
 							info_it != info_file_path_settings.end()
-							&&
-							head_it->second != info_it->second // mismatch
 						)
 						{
-							std::wcout 
-								<< L"LoadLibraryWeb: HEAD and INI differ: " << header_name << L": " 
-								<< L"HEAD " << head_it->second << L" vs. INI " << info_it->second
-								<< std::endl;
+							if (head_it->second != info_it->second) // mismatch
+							{
+								std::wcout
+									<< L"LoadLibraryWeb: HEAD and INI differ: " << header_name << L": "
+									<< L"HEAD " << head_it->second << L" vs. INI " << info_it->second
+									<< std::endl;
+								all_match = false;
+								break;
+							}
+							else
+								any_match = true;
+						}
+						else if 
+						(
+							head_it == head_response.Headers.end()
+							&&
+							info_it == info_file_path_settings.end()
+						)
+						{
 							all_match = false;
 							break;
 						}
-						else
-							any_match = false;
+						else // one has and other doesn't
+						{
+							all_match = false;
+						}
 					}
 
 					if (all_match && any_match)
@@ -98,12 +119,13 @@ namespace otherpeoplecode
 
 		// failing that, download the file to the cache
 		std::wcout << L"LoadLibraryWeb: GET" << std::endl;
+		Loader get_loader;
 		HttpRequest get_request(url, L"GET", url_cache_path);
-		HttpResponse get_response = loader.Load(get_request);
+		HttpResponse get_response = get_loader.Load(get_request);
 		if (get_response.StatusCode != 200)
 		{
 			std::wcout << L"LoadLibraryWeb: GET failed: " << get_response.StatusCode << " " << get_response.ErrorMessage << std::endl;
-			::SetLastError(ERROR_INTERNET_CANNOT_CONNECT);
+			::SetLastError(ERROR_WINHTTP_INVALID_SERVER_RESPONSE);
 			return NULL;
 		}
 		std::wcout << "GET Headers:" << std::endl;
@@ -129,8 +151,9 @@ namespace otherpeoplecode
 
 	void SetCachePath(const TCHAR* path)
 	{
+		std::unique_lock lock(g_loadMutex);
 		std::wstring wpath = Utils::TcharToWString(path);
 		std::wcout << L"SetCachePath: " << wpath << std::endl;
-		Setup::GetObj().CachePath = wpath;
+		g_cachePath = wpath;
 	}
 }

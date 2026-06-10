@@ -6,8 +6,11 @@
 #include "urlparts.h"
 #include "loader.h"
 
+#include <filesystem>
 #include <iostream>
 #include <source_location>
+
+#include <atlconv.h>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -263,10 +266,27 @@ namespace otherpeopletests
 
 		TEST_METHOD(TestLoadLibraryWeb)
 		{
-			HMODULE module = opc::LoadLibraryWeb(L"http://localhost/opctest/winhttp.dll");
-			Assert::IsTrue(module != nullptr);
-			Assert::IsTrue(::GetProcAddress(module, "WinHttpAddRequestHeadersEx") != nullptr);
-			::FreeLibrary(module);
+			USES_CONVERSION;
+			std::wstring cache_path = L"TestOpcCache";
+			const TCHAR* cache_path_t = W2T((wchar_t*)cache_path.c_str());
+
+			opc::SetCachePath(cache_path_t);
+			if (std::filesystem::exists(cache_path))
+				std::filesystem::remove_all(cache_path);
+
+			{
+				HMODULE module = opc::LoadLibraryWeb(L"http://localhost/opctest/winhttp.dll");
+				Assert::IsTrue(module != nullptr);
+				Assert::IsTrue(::GetProcAddress(module, "WinHttpAddRequestHeadersEx") != nullptr);
+				::FreeLibrary(module);
+			}
+
+			{
+				HMODULE module = opc::LoadLibraryWeb(L"http://localhost/opctest/winhttp.dll");
+				Assert::IsTrue(module != nullptr);
+				Assert::IsTrue(::GetProcAddress(module, "WinHttpAddRequestHeadersEx") != nullptr);
+				::FreeLibrary(module);
+			}
 		}
 	};
 }

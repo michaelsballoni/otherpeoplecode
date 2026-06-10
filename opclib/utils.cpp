@@ -3,12 +3,6 @@
 
 namespace otherpeoplecode
 {
-	Setup& Setup::GetObj()
-	{
-		static Setup obj;
-		return obj;
-	}
-
 	std::wstring Utils::ToLower(const std::wstring& str)
 	{
 		std::wstring ret_val;
@@ -38,6 +32,7 @@ namespace otherpeoplecode
 
 	std::wstring Utils::Trim(const std::wstring& str)
 	{
+		// handle special cases
 		if (str.empty())
 			return std::wstring();
 

@@ -4,6 +4,8 @@
 
 namespace otherpeoplecode
 {
+	// Utility for turning a URL into its part
+	// Simplistic
 	class UrlParts
 	{
 	public:

@@ -10,7 +10,7 @@ namespace otherpeoplecode
 		if (!cacheDirectoryPath.empty())
 			output += cacheDirectoryPath + L"\\";
 		else
-			output += L"OpcCache\\";	// wherever we are
+			output += L"OtherPeopleCode\\"; // wherever we are
 		
 		std::filesystem::create_directories(output);
 

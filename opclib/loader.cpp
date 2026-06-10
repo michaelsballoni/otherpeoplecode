@@ -122,14 +122,15 @@ namespace otherpeoplecode
 		auto headers_list = Utils::Split(headers_value, L"\r\n");
 		for (const auto& header : headers_list)
 		{
-			auto parts = Utils::Split(header, L":");
-			if (parts.size() != 2)
+			size_t idx = header.find(L':');
+			if (idx == std::wstring::npos)
 				continue;
 
-			std::wstring name = Utils::ToLower(Utils::Trim(parts[0]));
-			std::wstring value = Utils::Trim(parts[1]);
+			std::wstring name = Utils::ToLower(Utils::Trim(header.substr(0, idx)));
+			std::wstring value = Utils::Trim(header.substr(idx + 1));
 
-			response.Headers[name] = value; // last wins
+			if (!name.empty() && !value.empty())
+				response.Headers[name] = value; // last wins
 		}
 
 		if (read_response_payload)

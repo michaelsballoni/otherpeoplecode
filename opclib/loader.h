@@ -10,6 +10,8 @@
 
 namespace otherpeoplecode
 {
+	// Specify the parameters for an HTTP request
+	// Simplistic
 	class HttpRequest
 	{
 	public:
@@ -24,6 +26,10 @@ namespace otherpeoplecode
 		std::wstring OutputFilePath;
 	};
 
+	// Get the parameters from the response of an HTTP request
+	// StatusCode is the HTTP status code
+	// ErrorMessage is a detailed message about where processing the request failed
+	// Returns all HTTP Headers that WinHttp got back
 	class HttpResponse
 	{
 	public:
@@ -43,6 +49,9 @@ namespace otherpeoplecode
 		}
 	};
 
+	// Single-Use HTTP request processor
+	// Use one object per request, don't reuse Loader objects, 
+	// this is so the cleanup stays simple
 	class Loader
 	{
 	public:

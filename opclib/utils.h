@@ -2,13 +2,7 @@
 
 namespace otherpeoplecode
 {
-	class Setup
-	{
-	public:
-		std::wstring CachePath;
-		static Setup& GetObj();
-	};
-
+	// Various utilities, mostly for string processing
 	class Utils
 	{
 	public:
