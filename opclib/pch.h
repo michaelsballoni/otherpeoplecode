@@ -4,20 +4,18 @@
 
 #include <windows.h>
 #include <wininet.h>
-#include <tchar.h>
-
 #include <winhttp.h>
 #pragma comment(lib, "Winhttp.lib")
+
+#include <stdio.h>
 
 #include <algorithm>
 #include <cwctype>
 #include <exception>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <map>
 #include <optional>
 #include <string>
 #include <vector>
 
-#include <stdio.h>

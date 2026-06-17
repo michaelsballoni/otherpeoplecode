@@ -1,5 +1,21 @@
 #pragma once
 
+// Pacification / Troubleshooting
+// progressLog is a FILE* which can be null to not do logging
+// msg is assumed to be a ASCII string literal
+// Any parameters past the msg are assumed to be variables to format into the output
+#define OPCLOG(progressLog, msg, ...) \
+	{ \
+		if (progressLog) \
+		{ \
+			do \
+			{ \
+				::fprintf(progressLog, msg"\r\n", ##__VA_ARGS__); \
+				::_flushall(); \
+			} while (false); \
+		} \
+	}
+
 namespace otherpeoplecode
 {
 	// Various utilities, mostly for string processing

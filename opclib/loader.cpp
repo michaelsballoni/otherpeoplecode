@@ -149,15 +149,25 @@ namespace otherpeoplecode
 
 				DWORD dwDownloaded = 0;
 				if (!::WinHttpReadData(m_request, buffer.data(), dwSize, &dwDownloaded))
-					return response.OnErr(L"read_data");
+				{
+					response.ErrorMessage = L"read_data";
+					break;
+				}
 
 				size_t wrote_size = ::fwrite(buffer.data(), 1, buffer.size(), m_file);
 				if (wrote_size != buffer.size())
-					return response.OnErr(L"fwrite");
-			} while (dwSize > 0);
+				{
+					response.ErrorMessage = L"fwrite";
+					break;
+				}
+			} while (dwSize > 0 && response.ErrorMessage.empty());
 
 			::fclose(m_file);
 			m_file = nullptr;
+
+			// don't leave partial / errored responses lying around
+			if (!response.ErrorMessage.empty())
+				std::filesystem::remove(response.OutputFilePath);
 		}
 
 		return response;

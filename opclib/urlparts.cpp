@@ -6,15 +6,11 @@ namespace otherpeoplecode
 {
 	std::wstring UrlParts::GetCachePath(std::wstring cacheDirectoryPath)
 	{
-		std::wstring output;
-		if (!cacheDirectoryPath.empty())
-			output += cacheDirectoryPath + L"\\";
-		else
-			output += L"OtherPeopleCode\\"; // wherever we are
-		
-		std::filesystem::create_directories(output);
+		if (!cacheDirectoryPath.empty() && cacheDirectoryPath.back() != '\\')
+			cacheDirectoryPath += '\\';
 
-		output += Utils::ToSafeStr(server);
+		std::wstring output = cacheDirectoryPath + Utils::ToSafeStr(server);
+
 		if (!request.empty())
 			output += L"_" + Utils::ToSafeStr(request);
 		
