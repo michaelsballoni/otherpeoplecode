@@ -13,7 +13,7 @@ namespace otherpeopletests
 	public:
 		TEST_METHOD(TestOpcUtils)
 		{
-			Assert::IsTrue(TestLoadLibraryWebUtils());
+			Assert::IsTrue(TestLoadLibraryWebUtils()); // have the DLL do its own testing
 		}
 
 		TEST_METHOD(TestLoadLibraryWeb)
@@ -25,22 +25,30 @@ namespace otherpeopletests
 			{
 				HMODULE module = LoadLibraryWebEx(L"http://localhost/opctest/winhttp.dll", cache_path.c_str(), stdout);
 				Assert::IsTrue(module != nullptr);
-				Assert::IsTrue(::GetProcAddress(module, "WinHttpAddRequestHeadersEx") != nullptr);
-				::FreeLibrary(module);
+				if (module != nullptr)
+				{
+					Assert::IsTrue(::GetProcAddress(module, "WinHttpAddRequestHeadersEx") != nullptr);
+					::FreeLibrary(module);
+				}
+			}
+
+			{
+				HMODULE module = LoadLibraryWebEx(L"http://localhost/opctest/winhttp.dll", cache_path.c_str(), stdout);
+				if (module != nullptr)
+				{
+					Assert::IsTrue(::GetProcAddress(module, "WinHttpAddRequestHeadersEx") != nullptr);
+					::FreeLibrary(module);
+				}
 			}
 
 			{
 				HMODULE module = LoadLibraryWebEx(L"http://localhost/opctest/winhttp.dll", cache_path.c_str(), stdout);
 				Assert::IsTrue(module != nullptr);
-				Assert::IsTrue(::GetProcAddress(module, "WinHttpAddRequestHeadersEx") != nullptr);
-				::FreeLibrary(module);
-			}
-
-			{
-				HMODULE module = LoadLibraryWebEx(L"http://localhost/opctest/winhttp.dll", cache_path.c_str(), stdout);
-				Assert::IsTrue(module != nullptr);
-				Assert::IsTrue(::GetProcAddress(module, "WinHttpAddRequestHeadersEx") != nullptr);
-				::FreeLibrary(module);
+				if (module != nullptr)
+				{
+					Assert::IsTrue(::GetProcAddress(module, "WinHttpAddRequestHeadersEx") != nullptr);
+					::FreeLibrary(module);
+				}
 			}
 		}
 	};

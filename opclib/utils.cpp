@@ -69,6 +69,7 @@ namespace otherpeoplecode
 	std::wstring Utils::SafePathStr(const std::wstring& un)
 	{
 		std::wstring output;
+		output.reserve(un.size() * 2);
 		for (wchar_t c : un)
 		{
 			if (iswalnum(c))
@@ -112,8 +113,6 @@ namespace otherpeoplecode
 #pragma warning(push)
 #pragma warning(disable : 4996) // _CRT_SECURE_NO_WARNINGS
 		FILE* file = ::_wfopen(filePath.c_str(), L"rb");
-		if (!file)
-			return L"fopen";
 #pragma warning(pop)
 		if (file == nullptr)
 			return L"fopen";
@@ -228,28 +227,6 @@ namespace otherpeoplecode
 		return retVal;
 	}
 
-	std::wstring Utils::TcharToWString(const wchar_t* str)
-	{
-		if (!str || !*str)
-			return L"";
-		else
-			return std::wstring(str);
-	}
-
-	std::wstring Utils::TcharToWString(const char* str) 
-	{
-		if (!str || !*str)
-			return L"";
-
-		int size_needed = ::MultiByteToWideChar(CP_ACP, 0, str, -1, nullptr, 0);
-		if (size_needed <= 0)
-			return L"";
-
-		std::wstring result(size_needed - 1, L'\0'); // -1 to exclude the null terminator
-		::MultiByteToWideChar(CP_ACP, 0, str, -1, result.data(), size_needed);
-		return result;
-	}
-
 	std::wstring Utils::ToWideStr(const std::string& str)
 	{
 		if (str.empty())
@@ -325,11 +302,12 @@ namespace otherpeoplecode
 		return StartsWith(lower, L"http://") || StartsWith(lower, L"https://");
 	}
 
-	std::wstring Utils::ToSafeStr(const std::wstring& str)
+	std::wstring Utils::ToSafeStr(const std::wstring& str) // used for building parts of URLs to create file paths from
 	{
 		std::wstring strsafe;
 		for (auto c : str)
 		{
+			c = ::towlower(c);
 			if (::iswalnum(c))
 				strsafe += c;
 			else if (!strsafe.empty() && strsafe.back() != L'_')

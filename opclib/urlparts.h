@@ -4,8 +4,7 @@
 
 namespace otherpeoplecode
 {
-	// Utility for turning a URL into its part
-	// Simplistic
+	// Utility for turning a URL into its part.
 	class UrlParts
 	{
 	public:
@@ -13,8 +12,8 @@ namespace otherpeoplecode
 		std::wstring server;
 		std::wstring request;
 
-		std::wstring GetCachePath(std::wstring cacheDirectoryPath);
+		std::wstring GetCachePath(const std::wstring& cacheDirectoryPath);
 
-		static std::wstring Parse(std::wstring url, UrlParts& parts);
+		static std::wstring Parse(const std::wstring& url, UrlParts& parts);
 	};
 }

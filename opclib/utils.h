@@ -2,8 +2,8 @@
 
 // Pacification / Troubleshooting
 // progressLog is a FILE* which can be null to not do logging
-// msg is assumed to be a ASCII string literal
-// Any parameters past the msg are assumed to be variables to format into the output
+// msg is assumed to be a ASCII string literal message to output
+// Any parameters after the msg are variables to format into the output
 #define OPCLOG(progressLog, msg, ...) \
 	{ \
 		if (progressLog) \
@@ -33,8 +33,6 @@ namespace otherpeoplecode
 		static std::wstring Utf8ToWString(const std::string& str);
 		static std::string WstringToUtf8(const std::wstring& str);
 		static std::vector<std::wstring> Split(const std::wstring& str, const std::wstring& seperator);
-		static std::wstring TcharToWString(const wchar_t* str);
-		static std::wstring TcharToWString(const char* str);
 		static std::wstring ToWideStr(const std::string& str);
 		static std::string ToNarrowStr(const std::wstring& str);
 		static bool IsUrl(const std::wstring& maybeUrl);

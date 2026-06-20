@@ -12,15 +12,22 @@
 namespace opc = otherpeoplecode;
 
 #define AssertAreEqual(x, y) \
-	if (!((x) == (y))) \
-		printf("AssertAreEqual fails: %d %s\n", __LINE__, __FILE__);
+	if (!((x) == (y))) { \
+		printf("AssertAreEqual fails: %d %s\n", __LINE__, __FILE__); \
+		return false; \
+	}
 
 #define AssertIsTrue(x) \
-	if (!(x)) \
-		printf("AssertIsTrue fails: %d %s\n", __LINE__, __FILE__);
+	if (!(x)) { \
+		printf("AssertIsTrue fails: %d %s\n", __LINE__, __FILE__); \
+		return false; \
+	}
 
 #define AssertFail() \
-	printf("AssertFail: %d %s\n", __LINE__, __FILE__);
+	{ \
+		printf("AssertFail: %d %s\n", __LINE__, __FILE__); \
+		return false; \
+	}
 
 BOOL TestLoadLibraryWebUtils()
 {
@@ -227,22 +234,22 @@ BOOL TestLoadLibraryWebUtils()
 		opc::HttpRequest request(L"http://)(*&^)*(^)*(&^)*(&.com", L"GET", L"mballoni-bad_request.html");
 		opc::HttpResponse response = opc::Loader().Load(request);
 		AssertAreEqual(std::wstring(L"connect"), response.ErrorMessage);
-		AssertIsTrue(response.StatusCode / 100 != 2);
-		AssertAreEqual(DWORD(0), response.StatusCode);
+		AssertIsTrue(response.HttpStatusCode / 100 != 2);
+		AssertAreEqual(DWORD(0), response.HttpStatusCode);
 	}
 	{
 		// bad request
 		opc::HttpRequest request(L"http://localhost/opctest/bad-url-part", L"GET", L"mballoni-bad_url_part.html");
 		opc::HttpResponse response = opc::Loader().Load(request);
 		AssertAreEqual(std::wstring(L""), response.ErrorMessage);
-		AssertAreEqual(DWORD(404), response.StatusCode);
+		AssertAreEqual(DWORD(404), response.HttpStatusCode);
 	}
 	{
 		// good request
 		opc::HttpRequest request(L"http://localhost/opctest/index.html", L"GET", L"mballoni-local-index.html");
 		opc::HttpResponse response = opc::Loader().Load(request);
 		AssertAreEqual(std::wstring(L""), response.ErrorMessage);
-		AssertAreEqual(DWORD(200), response.StatusCode);
+		AssertAreEqual(DWORD(200), response.HttpStatusCode);
 		std::vector<uint8_t> mballoni_file_bytes;
 		std::wstring file_error = opc::Utils::LoadFileIntoMemory(L"mballoni-local-index.html", mballoni_file_bytes);
 		AssertAreEqual(std::wstring(L""), file_error);

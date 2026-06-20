@@ -7,7 +7,7 @@ namespace otherpeoplecode
 	HttpResponse Loader::Load(HttpRequest request)
 	{
 		HttpResponse response(request);
-		OPCLOG(response.ProgressLog, "Load...");
+		OPCLOG(response.ProgressLog, "Load... ");
 
 		UrlParts url_parts;
 		std::wstring url_parts_error = UrlParts::Parse(request.Url, url_parts);
@@ -27,7 +27,6 @@ namespace otherpeoplecode
 		}
 		else
 			OPCLOG(response.ProgressLog, "Load: Not reading response body for verb %ls", request.HttpVerb.c_str());
-
 
 		OPCLOG(response.ProgressLog, "Load: Connecting...");
 		m_connection =
@@ -89,7 +88,7 @@ namespace otherpeoplecode
 				m_request, 
 				WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, 
 				NULL, 
-				&response.StatusCode, 
+				&response.HttpStatusCode, 
 				&status_size, 
 				NULL
 			)
@@ -97,7 +96,7 @@ namespace otherpeoplecode
 		{
 			return response.OnErr(L"status_code");
 		}
-		OPCLOG(response.ProgressLog, "Load: Status code: %d", (int)response.StatusCode);
+		OPCLOG(response.ProgressLog, "Load: Status code: %d", (int)response.HttpStatusCode);
 
 		OPCLOG(response.ProgressLog, "Load: Reading all headers (size)...");
 		DWORD dwHeadersSize = 0;
@@ -182,7 +181,7 @@ namespace otherpeoplecode
 			m_file = nullptr;
 
 			// don't leave partial / errored responses lying around
-			if (!response.ErrorMessage.empty())
+			if ((response.HttpStatusCode / 100 != 2) || !response.ErrorMessage.empty())
 			{
 				OPCLOG(response.ProgressLog, "Load: Deleting errored output file");
 				if (std::filesystem::exists(response.OutputFilePath))

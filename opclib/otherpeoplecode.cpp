@@ -39,9 +39,9 @@ HMODULE LoadLibraryWebEx
 			return NULL;
 		}
 
+		// normalize and ensure the cache directory path exists
 		// punt on non-URL inputs first...file?
 		OPCLOG(progressLog, "LoadLibraryWeb: %ls", url);
-		// normalize and ensure the cache directory path exists
 		if (cacheDirectory == nullptr || !*cacheDirectory)
 			cacheDirectory = L"OtherPeopleCode"; // wherever we are
 		OPCLOG(progressLog, "LoadLibraryWeb: Cache directory: %ls", cacheDirectory);
@@ -64,11 +64,11 @@ HMODULE LoadLibraryWebEx
 			// do the HEAD
 			OPCLOG(progressLog, "LoadLibraryWeb: Local file and INI exist; will make HEAD request to check for changes");
 			Loader head_loader;
-			HttpRequest head_request(url, L"HEAD", url_cache_path);
+			HttpRequest head_request(url, L"HEAD", url_cache_path, progressLog);
 			HttpResponse head_response = head_loader.Load(head_request);
-			if (head_response.StatusCode / 100 != 2)
+			if (head_response.HttpStatusCode / 100 != 2)
 			{
-				OPCLOG(progressLog, "LoadLibraryWeb: HEAD FAILED: %i %ls", (int)head_response.StatusCode, head_response.ErrorMessage.c_str());
+				OPCLOG(progressLog, "LoadLibraryWeb: HEAD FAILED: %i %ls", (int)head_response.HttpStatusCode, head_response.ErrorMessage.c_str());
 				::SetLastError(ERROR_WINHTTP_INVALID_SERVER_RESPONSE);
 				return NULL;
 			}
@@ -77,7 +77,7 @@ HMODULE LoadLibraryWebEx
 			for (auto it : head_response.Headers)
 			{
 				if (std::find(headers_to_compare.begin(), headers_to_compare.end(), it.first) != headers_to_compare.end())
-					OPCLOG(progressLog, "%ls: %ls", it.first.c_str(), it.second.c_str());
+					OPCLOG(progressLog, " - %ls: %ls", it.first.c_str(), it.second.c_str());
 			}
 
 			// Open our INI file and compare its contents with the HEAD response
@@ -140,11 +140,11 @@ HMODULE LoadLibraryWebEx
 		// failing that, download the file to the cache
 		OPCLOG(progressLog, "LoadLibraryWeb: GET");
 		Loader get_loader;
-		HttpRequest get_request(url, L"GET", url_cache_path);
+		HttpRequest get_request(url, L"GET", url_cache_path, progressLog);
 		HttpResponse get_response = get_loader.Load(get_request);
-		if (get_response.StatusCode != 200)
+		if (get_response.HttpStatusCode != 200)
 		{
-			OPCLOG(progressLog, "LoadLibraryWeb: GET FAILED: %i %ls", (int)get_response.StatusCode, get_response.ErrorMessage.c_str());
+			OPCLOG(progressLog, "LoadLibraryWeb: GET FAILED: %i %ls", (int)get_response.HttpStatusCode, get_response.ErrorMessage.c_str());
 			::SetLastError(ERROR_WINHTTP_INVALID_SERVER_RESPONSE);
 			return NULL;
 		}
@@ -152,7 +152,7 @@ HMODULE LoadLibraryWebEx
 		for (auto it : get_response.Headers)
 		{
 			if (std::find(headers_to_compare.begin(), headers_to_compare.end(), it.first) != headers_to_compare.end())
-				OPCLOG(progressLog, "%ls: %ls", it.first.c_str(), it.second.c_str());
+				OPCLOG(progressLog, " - %ls: %ls", it.first.c_str(), it.second.c_str());
 		}
 
 		// write out the info file
@@ -167,7 +167,7 @@ HMODULE LoadLibraryWebEx
 		}
 		IniFile::PutEntries(url_cache_info_path, headers_to_info);
 
-		// All done.
+		// all done
 		OPCLOG(progressLog, "LoadLibraryWeb: GET success, LoadLibrary from cache!");
 		return ::LoadLibraryW(url_cache_path.c_str());
 #ifndef _DEBUG

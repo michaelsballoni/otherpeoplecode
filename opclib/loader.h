@@ -10,8 +10,8 @@
 
 namespace otherpeoplecode
 {
-	// Specify the parameters for an HTTP request
-	// Simplistic
+	// Store the parameters for an HTTP request 
+	// and where to write the response and trace output.
 	class HttpRequest
 	{
 	public:
@@ -31,13 +31,13 @@ namespace otherpeoplecode
 		std::wstring Url;
 		std::wstring HttpVerb;
 		std::wstring OutputFilePath;
-		FILE* ProgressLog = nullptr;
+		FILE* ProgressLog{};
 	};
 
-	// Get the parameters from the response of an HTTP request
-	// StatusCode is the HTTP status code
-	// ErrorMessage is a detailed message about where processing the request failed
-	// Returns all HTTP Headers that WinHttp got back
+	// Store the parameters from the response of an HTTP request.
+	// StatusCode is the HTTP status code.
+	// ErrorMessage tells where processing failed.
+	// Returns all HTTP response headers.
 	class HttpResponse
 	{
 	public:
@@ -49,22 +49,22 @@ namespace otherpeoplecode
 		std::wstring OutputFilePath;
 		FILE* ProgressLog;
 
-		DWORD StatusCode = 0;
+		DWORD HttpStatusCode{};
 		std::wstring ErrorMessage;
 		
 		std::map<std::wstring, std::wstring> Headers;
 
 		HttpResponse& OnErr(const std::wstring& msg)
 		{
-			OPCLOG(ProgressLog, "HttpResponse ERROR: %d %ls", (int)StatusCode, msg.c_str());
+			OPCLOG(ProgressLog, "HttpResponse ERROR: %d %ls", (int)HttpStatusCode, msg.c_str());
 			ErrorMessage = msg;
 			return *this;
 		}
 	};
 
-	// Single-Use HTTP request processor
-	// Use one object per request, don't reuse Loader objects, 
-	// this is so the cleanup stays simple
+	// Single-Use HTTP request processor.
+	// Use one object per request; don't reuse Loader objects.
+	// This is so cleanup is simple.
 	class Loader
 	{
 	public:
@@ -82,10 +82,7 @@ namespace otherpeoplecode
 			::WinHttpCloseHandle(m_session);
 
 			if (m_file != nullptr)
-			{
 				::fclose(m_file);
-				m_file = nullptr;
-			}
 		}
 
 		HttpResponse Load(HttpRequest request);

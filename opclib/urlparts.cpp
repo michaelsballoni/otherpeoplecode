@@ -4,26 +4,29 @@
 
 namespace otherpeoplecode
 {
-	std::wstring UrlParts::GetCachePath(std::wstring cacheDirectoryPath)
+	std::wstring UrlParts::GetCachePath(const std::wstring& cacheDirectoryPath)
 	{
-		if (!cacheDirectoryPath.empty() && cacheDirectoryPath.back() != '\\')
-			cacheDirectoryPath += '\\';
+		std::wstring output = cacheDirectoryPath;
+		if (!output.empty() && output.back() != '\\')
+			output += '\\';
 
-		std::wstring output = cacheDirectoryPath + Utils::ToSafeStr(server);
+		output += Utils::ToSafeStr(server);
 
 		if (!request.empty())
-			output += L"_" + Utils::ToSafeStr(request);
-		
-		output += L"_" + std::to_wstring(port);
-		
+		{
+			output += '_';
+			output += Utils::ToSafeStr(request);
+		}
+
+		output += '_';
+		output += std::to_wstring(port);
+
 		return output;
 	}
 
-	std::wstring UrlParts::Parse(std::wstring url, UrlParts& parts)
+	std::wstring UrlParts::Parse(const std::wstring& url, UrlParts& parts)
 	{
-		std::wstring lower_path;
-		for (wchar_t u : url)
-			lower_path.push_back(std::towlower(u));
+		std::wstring lower_path = Utils::ToLower(url);
 
 		bool is_http = Utils::StartsWith(lower_path, L"http://");
 		bool is_https = Utils::StartsWith(lower_path, L"https://");
