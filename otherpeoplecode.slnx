@@ -5,5 +5,5 @@
   </Configurations>
   <Project Path="opclib/opclib.vcxproj" Id="b0a18b60-0f4e-4549-afa6-062f010b5ba6" />
   <Project Path="opcmd/opcmd.vcxproj" Id="9c809d62-4dd2-4050-a7fb-a335a635f48b" />
-  <Project Path="otherpeopletests/otherpeopletests.vcxproj" />
+  <Project Path="opctests/opctests.vcxproj" Id="0620399e-a008-bc0f-3bd8-04fd703ac119" />
 </Solution>
