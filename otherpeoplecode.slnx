@@ -3,7 +3,6 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="exampleapp/exampleapp.vcxproj" Id="a2e5eb13-e897-4420-8256-6ccc91ed0cdf" />
-  <Project Path="opclib/opclib.vcxproj" Id="4685d017-a91d-48cf-a5de-faea6c1ba02d" />
+  <Project Path="opclib/opclib.vcxproj" Id="b0a18b60-0f4e-4549-afa6-062f010b5ba6" />
   <Project Path="otherpeopletests/otherpeopletests.vcxproj" />
 </Solution>

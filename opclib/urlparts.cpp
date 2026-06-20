@@ -49,9 +49,11 @@ namespace otherpeoplecode
 		size_t port_idx = parts.server.find(':');
 		if (port_idx != std::wstring::npos)
 		{
-			parts.port = _wtoi(parts.server.substr(port_idx + 1).c_str());
-			if (parts.port <= 0 || parts.port > USHRT_MAX)
+			int port = _wtoi(parts.server.substr(port_idx + 1).c_str());
+			if (port <= 0 || port > USHRT_MAX)
 				return L"port";
+
+			parts.port = static_cast<uint16_t>(port);
 			parts.server = parts.server.substr(0, port_idx);
 		}
 		else

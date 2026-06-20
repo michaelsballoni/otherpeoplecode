@@ -9,7 +9,7 @@ namespace otherpeoplecode
 	class UrlParts
 	{
 	public:
-		int port = 0;
+		uint16_t port = 0;
 		std::wstring server;
 		std::wstring request;
 

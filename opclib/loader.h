@@ -25,12 +25,13 @@ namespace otherpeoplecode
 		: Url(url)
 		, HttpVerb(httpVerb)
 		, OutputFilePath(outputFilePath)
+		, ProgressLog(progressLog)
 		{}
 
 		std::wstring Url;
 		std::wstring HttpVerb;
 		std::wstring OutputFilePath;
-		FILE* ProgressLog;
+		FILE* ProgressLog = nullptr;
 	};
 
 	// Get the parameters from the response of an HTTP request

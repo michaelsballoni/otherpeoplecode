@@ -15,7 +15,8 @@
 #include <filesystem>
 #include <fstream>
 #include <map>
+#include <mutex>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <vector>
-
