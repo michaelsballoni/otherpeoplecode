@@ -6,7 +6,8 @@ namespace otherpeoplecode
 {
 	HttpResponse Loader::Load(HttpRequest request)
 	{
-		HttpResponse response(request.OutputFilePath);
+		HttpResponse response(request);
+		OPCLOG(response.ProgressLog, "Load...");
 
 		UrlParts url_parts;
 		std::wstring url_parts_error = UrlParts::Parse(request.Url, url_parts);
@@ -16,6 +17,7 @@ namespace otherpeoplecode
 		bool read_response_payload = request.HttpVerb != L"HEAD";
 		if (read_response_payload)
 		{
+			OPCLOG(response.ProgressLog, "Load: Opening output file: %ls", response.OutputFilePath.c_str());
 #pragma warning(push)
 #pragma warning(disable : 4996) // _CRT_SECURE_NO_WARNINGS
 			m_file = ::_wfopen(response.OutputFilePath.c_str(), L"wb");
@@ -23,8 +25,12 @@ namespace otherpeoplecode
 				return response.OnErr(L"fopen");
 #pragma warning(pop)
 		}
+		else
+			OPCLOG(response.ProgressLog, "Load: Not reading response body for verb %ls", request.HttpVerb.c_str());
 
-		m_connection = 
+
+		OPCLOG(response.ProgressLog, "Load: Connecting...");
+		m_connection =
 			::WinHttpConnect
 			(
 				m_session, 
@@ -35,6 +41,7 @@ namespace otherpeoplecode
 		if (m_connection == nullptr)
 			return response.OnErr(L"connect");
 
+		OPCLOG(response.ProgressLog, "Load: Opening...");
 		const wchar_t* types[]{ L"*/*", nullptr };
 		m_request = 
 			::WinHttpOpenRequest
@@ -50,6 +57,7 @@ namespace otherpeoplecode
 		if (m_request == nullptr)
 			return response.OnErr(L"open_request");
 
+		OPCLOG(response.ProgressLog, "Load: Sending request...");
 		DWORD_PTR ptr = 0;
 		if
 		(
@@ -67,9 +75,12 @@ namespace otherpeoplecode
 		{
 			return response.OnErr(L"send_request");
 		}
+
+		OPCLOG(response.ProgressLog, "Load: Receiving response...");
 		if (!::WinHttpReceiveResponse(m_request, nullptr))
 			return response.OnErr(L"receive_response");
 
+		OPCLOG(response.ProgressLog, "Load: Reading status code...");
 		DWORD status_size = sizeof(DWORD);
 		if
 		(
@@ -86,7 +97,9 @@ namespace otherpeoplecode
 		{
 			return response.OnErr(L"status_code");
 		}
+		OPCLOG(response.ProgressLog, "Load: Status code: %d", (int)response.StatusCode);
 
+		OPCLOG(response.ProgressLog, "Load: Reading all headers (size)...");
 		DWORD dwHeadersSize = 0;
 		::WinHttpQueryHeaders
 		(
@@ -100,6 +113,7 @@ namespace otherpeoplecode
 		if (::GetLastError() != ERROR_INSUFFICIENT_BUFFER)
 			return response.OnErr(L"query_headers");
 
+		OPCLOG(response.ProgressLog, "Load: Reading all headers...");
 		std::wstring headers_value(dwHeadersSize, 0);
 		if
 		(
@@ -119,6 +133,7 @@ namespace otherpeoplecode
 		if (::GetLastError() == ERROR_WINHTTP_HEADER_NOT_FOUND)
 			return response.OnErr(L"headers_not_found");
 
+		OPCLOG(response.ProgressLog, "Load: Processing headers...");
 		auto headers_list = Utils::Split(headers_value, L"\r\n");
 		for (const auto& header : headers_list)
 		{
@@ -135,6 +150,7 @@ namespace otherpeoplecode
 
 		if (read_response_payload)
 		{
+			OPCLOG(response.ProgressLog, "Load: Response body...");
 			DWORD dwSize = 0;
 			std::vector<uint8_t> buffer;
 			do
@@ -167,9 +183,14 @@ namespace otherpeoplecode
 
 			// don't leave partial / errored responses lying around
 			if (!response.ErrorMessage.empty())
-				std::filesystem::remove(response.OutputFilePath);
+			{
+				OPCLOG(response.ProgressLog, "Load: Deleting errored output file");
+				if (std::filesystem::exists(response.OutputFilePath))
+					std::filesystem::remove(response.OutputFilePath);
+			}
 		}
 
+		OPCLOG(response.ProgressLog, "Load: All done.");
 		return response;
 	}
 }

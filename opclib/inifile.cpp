@@ -23,8 +23,7 @@ namespace otherpeoplecode
 		in_file.close();
 
 		// erase the BOM
-		
-		if (file_str.size() >= 2 && file_str.compare(0, 3, "\xEF\xBB\xBF") == 0)
+		if (file_str.size() >= 3 && file_str.compare(0, 3, "\xEF\xBB\xBF") == 0)
 			file_str.erase(0, 3);
 
 		// get the lines

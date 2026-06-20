@@ -68,7 +68,10 @@ namespace otherpeoplecode
 
 				OPCLOG(progressLog, "HEAD Headers:");
 				for (auto it : head_response.Headers)
-					OPCLOG(progressLog, "%ls: %ls", it.first.c_str(), it.second.c_str());
+				{
+					if (std::find(headers_to_compare.begin(), headers_to_compare.end(), it.first) != headers_to_compare.end())
+						OPCLOG(progressLog, "%ls: %ls", it.first.c_str(), it.second.c_str());
+				}
 
 				// Open our INI file and compare its contents with the HEAD response
 				auto info_file_path_settings_opt = IniFile::GetEntries(url_cache_info_path);
@@ -85,11 +88,11 @@ namespace otherpeoplecode
 							auto head_it = head_response.Headers.find(header_name);
 							auto info_it = info_file_path_settings.find(header_name);
 							if
-								(
-									head_it != head_response.Headers.end()
-									&&
-									info_it != info_file_path_settings.end()
-									)
+							(
+								head_it != head_response.Headers.end()
+								&&
+								info_it != info_file_path_settings.end()
+							)
 							{
 								if (head_it->second != info_it->second) // mismatch
 								{
@@ -120,7 +123,7 @@ namespace otherpeoplecode
 
 						if (all_match && any_match)
 						{
-							OPCLOG(progressLog, "LoadLibraryWeb: HEAD and INI match...LoadLibrary from cache!");
+							OPCLOG(progressLog, "LoadLibraryWeb: HEAD and INI match...LoadLibrary cached DLL!");
 							return ::LoadLibraryW(url_cache_path.c_str()); // load the library out of the cache
 						}
 					}
@@ -140,7 +143,10 @@ namespace otherpeoplecode
 			}
 			OPCLOG(progressLog, "LoadLibraryWeb: GET Headers:");
 			for (auto it : get_response.Headers)
-				OPCLOG(progressLog, "%ls: %ls", it.first.c_str(), it.second.c_str());
+			{
+				if (std::find(headers_to_compare.begin(), headers_to_compare.end(), it.first) != headers_to_compare.end())
+					OPCLOG(progressLog, "%ls: %ls", it.first.c_str(), it.second.c_str());
+			}
 
 			// write out the info file
 			OPCLOG(progressLog, "LoadLibraryWeb: Writing INI");

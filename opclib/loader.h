@@ -15,15 +15,22 @@ namespace otherpeoplecode
 	class HttpRequest
 	{
 	public:
-		HttpRequest(const std::wstring& url, const std::wstring httpVerb, const std::wstring& outputFilePath)
-			: Url(url)
-			, HttpVerb(httpVerb)
-			, OutputFilePath(outputFilePath)
+		HttpRequest
+		(
+			const std::wstring& url, 
+			const std::wstring httpVerb, 
+			const std::wstring& outputFilePath, 
+			FILE* progressLog = nullptr
+		)
+		: Url(url)
+		, HttpVerb(httpVerb)
+		, OutputFilePath(outputFilePath)
 		{}
 
 		std::wstring Url;
 		std::wstring HttpVerb;
 		std::wstring OutputFilePath;
+		FILE* ProgressLog;
 	};
 
 	// Get the parameters from the response of an HTTP request
@@ -33,17 +40,22 @@ namespace otherpeoplecode
 	class HttpResponse
 	{
 	public:
-		HttpResponse(const std::wstring& outputFilePath)
-			: OutputFilePath(outputFilePath)
+		HttpResponse(const HttpRequest& request)
+		: OutputFilePath(request.OutputFilePath)
+		, ProgressLog(request.ProgressLog)
 		{}
+
+		std::wstring OutputFilePath;
+		FILE* ProgressLog;
 
 		DWORD StatusCode = 0;
 		std::wstring ErrorMessage;
-		std::wstring OutputFilePath;
+		
 		std::map<std::wstring, std::wstring> Headers;
 
 		HttpResponse& OnErr(const std::wstring& msg)
 		{
+			OPCLOG(ProgressLog, "HttpResponse ERROR: %d %ls", (int)StatusCode, msg.c_str());
 			ErrorMessage = msg;
 			return *this;
 		}
