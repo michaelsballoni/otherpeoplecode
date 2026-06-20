@@ -22,7 +22,7 @@ namespace opc = otherpeoplecode;
 #define AssertFail() \
 	printf("AssertFail: %d %s\n", __LINE__, __FILE__);
 
-bool __declspec(dllexport) TestLoadLibraryWebUtils()
+BOOL TestLoadLibraryWebUtils()
 {
 	printf("Utils...\n");
 	AssertAreEqual(std::wstring(L""), opc::Utils::ToLower(L""));
@@ -251,5 +251,5 @@ bool __declspec(dllexport) TestLoadLibraryWebUtils()
 	}
 
 	printf("All done.\n");
-	return true;
+	return TRUE;
 }

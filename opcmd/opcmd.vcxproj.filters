@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="opcexample.cpp">
+    <ClCompile Include="opcmd.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

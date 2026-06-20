@@ -25,7 +25,7 @@ extern "C" {
 	);
 
 	// Ensure that the implementation is functional.
-	bool __declspec(dllexport) TestLoadLibraryWebUtils();
+	BOOL __declspec(dllexport) TestLoadLibraryWebUtils();
 
 #ifdef __cplusplus
 }

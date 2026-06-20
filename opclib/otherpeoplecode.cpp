@@ -48,10 +48,18 @@ HMODULE LoadLibraryWebEx
 		std::filesystem::create_directories(cacheDirectory);
 
 		// look in the cache first
-		std::vector<std::wstring> headers_to_compare{ L"Last-Modified", L"Content-Length", L"ETag" };
+		std::vector<std::wstring> headers_to_compare{ L"last-modified", L"content-length", L"etag" };
 		std::wstring url_cache_path = url_parts.GetCachePath(cacheDirectory) + L".dll";
 		std::wstring url_cache_info_path = url_cache_path + L".info";
-		if (Utils::FileExists(url_cache_path) && Utils::FileExists(url_cache_info_path))
+		if (!Utils::FileExists(url_cache_path))
+		{
+			OPCLOG(progressLog, "LoadLibraryWeb: DLL not found in cache");
+		}
+		else if (!Utils::FileExists(url_cache_info_path))
+		{
+			OPCLOG(progressLog, "LoadLibraryWeb: DLL metadata file not found");
+		}
+		else
 		{
 			// do the HEAD
 			OPCLOG(progressLog, "LoadLibraryWeb: Local file and INI exist; will make HEAD request to check for changes");
