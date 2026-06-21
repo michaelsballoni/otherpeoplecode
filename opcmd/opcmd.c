@@ -12,7 +12,6 @@ int wmain(int argc, wchar_t* argv[])
 	}
 
 	wchar_t* url = argv[1];
-	printf("URL: %ls\n\n", url);
 
 	while (TRUE)
 	{
